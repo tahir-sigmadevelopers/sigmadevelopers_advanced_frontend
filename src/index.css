@@ -1,0 +1,65 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+body {
+  cursor: url("/cursor.png"), auto;
+}
+
+.speedDial {
+  position: fixed;
+  right: 3vmax;
+  top: 3vmax;
+}
+
+.speedDialIcon {
+  width: 56px;
+  height: 56px;
+  border-radius: 100%;
+}
+
+.menuBurger {
+  z-index: 123;
+  height: 4rem;
+  width: 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: .41rem;
+  position: relative;
+}
+.menuBurgerItem1 {
+ background-color: yellow;
+}
+.menuBurgerItem{
+ background-color: rgb(60, 255, 0);
+}
+.menuBurgerItem1 {
+ background-color: rgb(34, 0, 255);
+}
+.MuiSvgIcon-root{
+  font-size: 3rem;
+}
+.menuBurgerItem{
+  z-index: 12;
+  padding: .2rem 0;
+  width: 3rem;
+  height: .51rem;
+}
+
+.menuBurger:nth-child(3){
+  margin-bottom: 4rem;
+}
+
+.navbar{
+  position: relative;
+}
+
+
+@media only screen and (max-width: 600px)  {
+  .menuBurger{
+    top: 2rem;
+    height: 3rem;
+    width: 3rem;
+  }
+}
