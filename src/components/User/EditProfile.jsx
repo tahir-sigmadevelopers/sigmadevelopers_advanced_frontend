@@ -4,20 +4,24 @@ import { useDispatch, useSelector } from 'react-redux'
 import { loadUser, updateProfile } from '../../redux/actions/user'
 import Loader from '../Loader'
 import { useNavigate } from 'react-router-dom'
-
+import { AccountCircle, Email, Lock, CloudUpload, ArrowBack } from '@mui/icons-material'
+import { Link } from 'react-router-dom'
 
 const EditProfile = () => {
-
-
     const dispatch = useDispatch()
-
     const { loading, user } = useSelector(state => state.user)
-
-    const [name, setName] = useState(user?.name)
-    const [email, setEmail] = useState(user?.email)
+    const { darkMode } = useSelector((state) => state.theme)
+    
+    const [name, setName] = useState(user?.name || '')
+    const [email, setEmail] = useState(user?.email || '')
     const [password, setPassword] = useState("")
     const [image, setImage] = useState("")
+    const [previewImage, setPreviewImage] = useState(user?.picture || "")
+    const [isDragging, setIsDragging] = useState(false)
+    
+    const navigate = useNavigate()
 
+    // Validation functions
     const isEmailValid = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
     const isNameValid = (name) => {
         // Check if the name is between 3 and 15 characters
@@ -52,131 +56,288 @@ const EditProfile = () => {
         return true;
     };
 
+    // Handle image change from file input
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+        processImageFile(file);
+    };
 
-    const navigate = useNavigate()
-
-
-
-    const imageUploadChange = (e) => {
-        if (e.target.name === "image") {
-            const selectedImage = e.target.files[0];
-
-            if (isImageValid(selectedImage)) {
-                const reader = new FileReader();
-                reader.onload = () => {
-                    if (reader.readyState === 2) {
-                        setImage(reader.result);
-                    }
-                };
-
-                reader.readAsDataURL(selectedImage);
-            }
+    // Process image file whether from drag-drop or file input
+    const processImageFile = (file) => {
+        if (isImageValid(file)) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                if (reader.readyState === 2) {
+                    setImage(reader.result);
+                    setPreviewImage(reader.result);
+                }
+            };
+            reader.readAsDataURL(file);
         }
     };
-    const registerFormSubmit = async (e) => {
-        e.preventDefault()
 
+    // Drag and drop handlers
+    const handleDragOver = (e) => {
+        e.preventDefault();
+        setIsDragging(true);
+    };
+
+    const handleDragLeave = (e) => {
+        e.preventDefault();
+        setIsDragging(false);
+    };
+
+    const handleDrop = (e) => {
+        e.preventDefault();
+        setIsDragging(false);
+        
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+            const file = e.dataTransfer.files[0];
+            processImageFile(file);
+        }
+    };
+
+    // Form submission
+    const handleSubmit = async (e) => {
+        e.preventDefault();
 
         if (!isNameValid(name)) {
-            toast.error('Name Must Be 3-15 Characters Long');
+            toast.error('Name must be 3-15 characters long and contain only letters and spaces');
             return;
         }
 
         if (!isEmailValid(email)) {
-            toast.error('Invalid Email Format');
+            toast.error('Invalid email format');
             return;
         }
 
-        const data = new FormData();
-        data.set("name", name)
-        data.set("email", email)
-        data.set("password", password)
-        data.set("image", image)
+        const formData = new FormData();
+        formData.set("name", name);
+        formData.set("email", email);
+        
+        if (password) {
+            formData.set("password", password);
+        }
+        
+        if (image) {
+            formData.set("image", image);
+        }
 
+        await dispatch(updateProfile(formData));
+        navigate("/profile");
+    };
 
-        await dispatch(updateProfile(data));
-
-        navigate("/profile")
-
-    }
-
-
+    // Load user data
     useEffect(() => {
-        dispatch(loadUser())
-    }, [])
-    const { darkMode } = useSelector((state) => state.theme);
+        dispatch(loadUser());
+    }, [dispatch]);
+
+    // Update form when user data changes
+    useEffect(() => {
+        if (user) {
+            setName(user.name || '');
+            setEmail(user.email || '');
+            setPreviewImage(user.picture || '');
+        }
+    }, [user]);
 
     return (
-
-
-        <div className="flex min-h-full flex-col justify-center px-6 py-8 lg:px-8">
-            <div className="sm:mx-auto sm:w-full sm:max-w-sm">
-                <img className="mx-auto h-28 w-auto rounded-full" src="/logo.webp" alt="Sigma Developers Programmer" />
-                <h2 className={`${darkMode && 'text-white'} mt-4 text-center text-2xl font-bold leading-4 tracking-tight text-gray-900`}>Edit Profile</h2>
-            </div>
-
-            <div className="mt-4 sm:mx-auto sm:w-full sm:max-w-sm">
-                <form onSubmit={registerFormSubmit} className="space-y-1" encType="multipart/form-data">
-                    <div>
-                        <label htmlFor="name" className={`${darkMode && 'text-white'} block text-sm font-medium leading-6 text-gray-900`}>Full Name</label>
-                        <div className="mt-1">
-                            <input value={name} type="text" name='name' onChange={(e) => setName(e.target.value)} autoComplete="name" className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inappend ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inappend focus:ring-grey-600 sm:text-sm sm:leading-6 px-2" />
+        <div className={`container mx-auto px-4 py-24 max-w-4xl ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+            <div className={`rounded-xl shadow-xl overflow-hidden ${darkMode ? 'bg-gray-800' : 'bg-white'} p-6 md:p-8`}>
+                <div className="flex items-center mb-6">
+                    <Link to="/profile" className={`mr-4 p-2 rounded-full ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} transition-colors duration-200`}>
+                        <ArrowBack />
+                    </Link>
+                    <h1 className="text-2xl font-bold">Edit Profile</h1>
+                </div>
+                
+                <form onSubmit={handleSubmit} className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {/* Image Upload Section */}
+                        <div className="md:col-span-1">
+                            <label className="block text-sm font-medium mb-2">Profile Picture</label>
+                            <div 
+                                className={`
+                                    relative rounded-lg overflow-hidden border-2 border-dashed 
+                                    ${isDragging ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : darkMode ? 'border-gray-600 bg-gray-700' : 'border-gray-300 bg-gray-50'}
+                                    transition-all duration-200 h-64
+                                `}
+                                onDragOver={handleDragOver}
+                                onDragLeave={handleDragLeave}
+                                onDrop={handleDrop}
+                            >
+                                <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center">
+                                    {previewImage ? (
+                                        <div className="relative w-full h-full">
+                                            <img 
+                                                src={previewImage} 
+                                                alt="Profile Preview" 
+                                                className="w-full h-full object-cover rounded-md" 
+                                            />
+                                            <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
+                                                <p className="text-white text-sm">Click or drag to change</p>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <CloudUpload className={`h-12 w-12 mb-2 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`} />
+                                            <p className={`${darkMode ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
+                                                Drag & drop your image here
+                                            </p>
+                                            <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                                                or click to browse
+                                            </p>
+                                        </>
+                                    )}
+                                </div>
+                                <input
+                                    type="file"
+                                    name="image"
+                                    accept="image/*"
+                                    onChange={handleImageChange}
+                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                />
+                            </div>
+                            <p className={`mt-1 text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                                Maximum file size: 5MB. Supports: JPG, PNG, GIF
+                            </p>
+                        </div>
+                        
+                        {/* Form Fields */}
+                        <div className="md:col-span-2 space-y-6">
+                            <div>
+                                <label htmlFor="name" className="block text-sm font-medium mb-2">
+                                    Full Name
+                                </label>
+                                <div className={`relative rounded-md shadow-sm`}>
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <AccountCircle className={`h-5 w-5 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`} />
+                                    </div>
+                                    <input
+                                        type="text"
+                                        name="name"
+                                        id="name"
+                                        value={name}
+                                        onChange={(e) => setName(e.target.value)}
+                                        className={`
+                                            block w-full pl-10 pr-3 py-3 rounded-md 
+                                            ${darkMode 
+                                                ? 'bg-gray-700 text-white border-gray-600 focus:border-blue-500' 
+                                                : 'bg-white text-gray-900 border-gray-300 focus:border-blue-500'
+                                            }
+                                            border focus:ring-blue-500 focus:ring-1 outline-none
+                                        `}
+                                        placeholder="Your full name"
+                                    />
+                                </div>
+                                <p className={`mt-1 text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                                    3-15 characters, letters and spaces only
+                                </p>
+                            </div>
+                            
+                            <div>
+                                <label htmlFor="email" className="block text-sm font-medium mb-2">
+                                    Email Address
+                                </label>
+                                <div className={`relative rounded-md shadow-sm`}>
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <Email className={`h-5 w-5 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`} />
+                                    </div>
+                                    <input
+                                        type="email"
+                                        name="email"
+                                        id="email"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        className={`
+                                            block w-full pl-10 pr-3 py-3 rounded-md 
+                                            ${darkMode 
+                                                ? 'bg-gray-700 text-white border-gray-600 focus:border-blue-500' 
+                                                : 'bg-white text-gray-900 border-gray-300 focus:border-blue-500'
+                                            }
+                                            border focus:ring-blue-500 focus:ring-1 outline-none
+                                        `}
+                                        placeholder="your.email@example.com"
+                                    />
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label htmlFor="password" className="block text-sm font-medium mb-2">
+                                    New Password <span className="text-xs text-gray-500">(leave blank to keep current)</span>
+                                </label>
+                                <div className={`relative rounded-md shadow-sm`}>
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <Lock className={`h-5 w-5 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`} />
+                                    </div>
+                                    <input
+                                        type="password"
+                                        name="password"
+                                        id="password"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        className={`
+                                            block w-full pl-10 pr-3 py-3 rounded-md 
+                                            ${darkMode 
+                                                ? 'bg-gray-700 text-white border-gray-600 focus:border-blue-500' 
+                                                : 'bg-white text-gray-900 border-gray-300 focus:border-blue-500'
+                                            }
+                                            border focus:ring-blue-500 focus:ring-1 outline-none
+                                        `}
+                                        placeholder="••••••••"
+                                    />
+                                </div>
+                                <p className={`mt-1 text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                                    For a strong password, use a mix of letters, numbers, and symbols
+                                </p>
+                            </div>
                         </div>
                     </div>
-
-                    <div>
-                        <label htmlFor="email" className={`${darkMode && 'text-white'} block text-sm font-medium leading-6 text-gray-900`}>Email address</label>
-                        <div className="mt-1">
-                            <input value={email} name='email' onChange={(e) => setEmail(e.target.value)} type="email" autoComplete="email" className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inappend ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inappend focus:ring-grey-600 sm:text-sm sm:leading-6 px-2" />
-                        </div>
-                    </div>
-
-                    <div>
-                        <div className="flex items-center justify-between">
-                            <label htmlFor="password" className={`${darkMode && 'text-white'} block text-sm font-medium leading-6 text-gray-900`} autoComplete="password" >Password</label>
-
-                        </div>
-                        <div className="mt-1">
-                            <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" name='password' autoComplete="password" className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inappend ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inappend focus:ring-text-gray-800sm:text-sm sm:leading-6 px-2" />
-                        </div>
-                    </div>
-
-
-
-
-
-
-                    <div className='pb-2'>
-                        <label htmlFor="image" className={`${darkMode && 'text-white'} block text-sm font-medium leading-6 text-gray-900`}>Image</label>
-                        <div className="mt-1 pb-1">
-
-                            <input
-                                name="image"
-                                accept="image/*"
-
-                                onChange={imageUploadChange}
-                                className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 shadow-lg p-4"
-                                type="file"
-
-                            />
-
-                        </div>
-                    </div>
-
-                    <div>
-                        {
-                            loading ? <Loader /> : <button type="submit" className={`${darkMode ? "text-black bg-white hover:bg-gray-100 flex w-full justify-center rounded-md  px-3 py-1.5 text-sm font-semibold leading-6  shadow-smfocus-visible:outline focus-visible:outline-2 focus-visible:outline-offappend-2 focus-visible:outline-gray-900 mt-4" : "flex w-full justify-center rounded-md bg-gray-800 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-gray-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offappend-2 focus-visible:outline-gray-900 mt-4"}`}>Update</button>
-                        }
+                    
+                    <div className="flex justify-end mt-8">
+                        <Link
+                            to="/profile"
+                            className={`
+                                px-5 py-2.5 rounded-lg mr-3 font-medium
+                                ${darkMode 
+                                    ? 'bg-gray-700 text-gray-200 hover:bg-gray-600' 
+                                    : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
+                                }
+                                transition-colors duration-200
+                            `}
+                        >
+                            Cancel
+                        </Link>
+                        <button
+                            type="submit"
+                            className={`
+                                px-5 py-2.5 rounded-lg font-medium flex items-center
+                                ${loading ? 'opacity-75 cursor-not-allowed' : ''}
+                                bg-blue-600 text-white hover:bg-blue-700
+                                transition-colors duration-200
+                            `}
+                            disabled={loading}
+                        >
+                            {loading ? (
+                                <>
+                                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    Updating...
+                                </>
+                            ) : (
+                                'Save Changes'
+                            )}
+                        </button>
                     </div>
                 </form>
-
             </div>
         </div>
+    );
+};
 
-    )
-}
-
-export default EditProfile
+export default EditProfile;
 
 
 

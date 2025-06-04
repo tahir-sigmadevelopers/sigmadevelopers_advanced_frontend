@@ -7,7 +7,7 @@ const PageNotFound = () => {
     const { darkMode } = useSelector(state => state.theme)
 
     return (
-        <div className={`flex items-center justify-center min-h-[80vh] px-6 py-12 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+        <div className={`flex items-center justify-center min-h-[80vh] px-6 py-24 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
             <div className="w-full max-w-md mx-auto text-center">
                 {/* 404 with animation */}
                 <div className="relative">
