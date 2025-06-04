@@ -1,98 +1,89 @@
-import React, { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
-import Loader from "../components/Loader";
-import Sidebar from "./Sidebar";
-import { addCategory } from "../redux/actions/category";
-import { useEffect } from "react";
-import toast from "react-hot-toast";
+import React, { useEffect, useState } from 'react'
+import { toast } from 'react-hot-toast'
+import { useDispatch, useSelector } from 'react-redux'
+import { useNavigate } from 'react-router-dom'
+import { addCategory } from '../redux/actions/category'
+import Loader from '../components/Loader'
+import DashboardLayout from './DashboardLayout'
 
 const AddCategory = () => {
-  const [category, setCategory] = useState("");
+    const [category, setCategory] = useState("")
+    
+    const navigate = useNavigate()
+    const dispatch = useDispatch()
+    
+    const { loading, message, error } = useSelector(state => state.category)
+    const { darkMode } = useSelector(state => state.theme)
 
-  const navigate = useNavigate();
-
-  const dispatch = useDispatch();
-
-  const { loading, message, error } = useSelector((state) => state.category);
-
-  const addCategorySubmit = async (e) => {
-    e.preventDefault();
-
-    await dispatch(addCategory(category));
-    console.log("main hoon don", category);
-    navigate("/dashboard/categories");
-  };
-
-  useEffect(() => {
-    if (message) {
-      toast.success(message);
-      dispatch({ type: "clearMessage" });
+    const handleSubmit = async (e) => {
+        e.preventDefault()
+        
+        if (!category.trim()) {
+            toast.error("Category name cannot be empty")
+            return
+        }
+        
+        await dispatch(addCategory(category))
+        
+        if (!error) {
+            setCategory("")
+            navigate("/dashboard/categories")
+        }
     }
+
+    useEffect(() => {
     if (error) {
-      toast.error(error);
-      dispatch({ type: "clearError" });
-    }
-  }, [message, error])
+            toast.error(error)
+            dispatch({ type: "clearError" })
+        }
+        if (message) {
+            toast.success(message)
+            dispatch({ type: "clearMessage" })
+        }
+    }, [error, message, dispatch])
+
   return (
-    <div className="flex">
-      <Sidebar />
-
-      <div className="flex min-h-full container flex-col justify-center px-6 py-8 lg:px-8">
-        <div className="sm:mx-auto sm:w-full sm:max-w-sm">
-          {/* <img
-            className="mx-auto h-6 w-auto"
-            src="../../public/favicon.png"
-            alt="Your Company"
-          /> */}
-          <h2 className="mt-4 text-center text-2xl font-bold leading-4 tracking-tight">
-            Add Category{" "}
-          </h2>
-        </div>
-
-        <div className="mt-4 sm:mx-auto sm:w-full sm:max-w-sm">
-          <form
-            onSubmit={addCategorySubmit}
-            className="space-y-1"
-            encType="multipart/form-data"
-          >
+        <DashboardLayout title="Add Category">
+            <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-md p-6 max-w-md mx-auto`}>
+                <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label
-                htmlFor="category"
-                className="block text-sm font-medium leading-6"
-              >
-                Category
+                        <label htmlFor="category" className={`block text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
+                            Category Name
               </label>
-              <div className="mt-1">
                 <input
                   value={category}
                   type="text"
-                  name="category"
+                            name='category' 
                   onChange={(e) => setCategory(e.target.value)}
-                  autoComplete="category"
                   required
-                  className="block w-full rounded-md border-0 py-1.5 shadow-sm ring-1  ring-gray-300 placeholder:text-gray-400 focus:ring-2 f focus:ring-grey-600 sm:text-sm sm:leading-6 px-2"
+                            className={`block w-full rounded-md border-0 py-2 px-3 shadow-sm ring-1 ring-inset 
+                                ${darkMode ? 'bg-gray-700 text-white ring-gray-600' : 'bg-white text-gray-900 ring-gray-300'} 
+                                focus:ring-2 focus:ring-blue-600`} 
+                            placeholder="Enter category name"
                 />
-              </div>
+                        <p className={`mt-1 text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                            This category will be available for both projects and blogs
+                        </p>
             </div>
 
-            <div>
+                    <div className="pt-4">
               {loading ? (
-                <div className="mt-10"> <Loader /></div>
+                            <div className="flex justify-center">
+                                <Loader />
+                            </div>
               ) : (
                 <button
                   type="submit"
-                  className="flex w-full justify-center rounded-md bg-gray-800 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-gray-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offappend-2 focus-visible:outline-gray-900 mt-4"
+                                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all transform hover:-translate-y-1"
                 >
-                  Create
+                                Create Category
                 </button>
               )}
             </div>
           </form>
         </div>
-      </div>
-    </div>
-  );
-};
+        </DashboardLayout>
+    )
+}
 
-export default AddCategory;
+export default AddCategory

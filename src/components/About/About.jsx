@@ -189,8 +189,8 @@ const About = () => {
                         <p className="text-lg max-w-2xl mx-auto">
                             Our talented professionals bring diverse skills and expertise to every project.
                         </p>
-                    </div>
-                    
+                            </div>
+
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                         {teamMembers.map((member, index) => (
                             <motion.div 

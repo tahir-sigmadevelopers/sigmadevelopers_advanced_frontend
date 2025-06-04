@@ -7,8 +7,14 @@ import { themeReducer } from './redux/reducers/theme'
 import { blogReducer } from './redux/reducers/blog'
 import { categoryReducer } from './redux/reducers/category'
 
-// export const server = "https://mern-advanced-portfolio.vercel.app" 
-export const server = "http://localhost:4000" 
+// Get server URL from environment or use default
+// Check for development environment
+const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
+// Production URL
+export const server = isDevelopment 
+  ? "http://localhost:4000"  // Development server
+  : "https://mern-advanced-portfolio.vercel.app"; // Production server
 
 export const store = configureStore({
   reducer: {
@@ -16,8 +22,8 @@ export const store = configureStore({
     admin: adminReducer,
     project: projectReducer,
     testimonial: testimonialReducer,
-    blog:blogReducer,
-    category:categoryReducer,
+    blog: blogReducer,
+    category: categoryReducer,
     theme: themeReducer,
   },
 })

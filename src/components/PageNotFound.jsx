@@ -1,36 +1,78 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
+import { useSelector } from 'react-redux'
+import { Home, ArrowBack, SentimentDissatisfied } from '@mui/icons-material'
 
 const PageNotFound = () => {
+    const { darkMode } = useSelector(state => state.theme)
+
     return (
-        <section className="min-h-screen">
-            <div className="container flex items-center h-[72vh] px-6 py-1 mx-auto">
-                <div className="flex flex-col items-center max-w-sm mx-auto text-center">
-                    <p className="p-3 text-sm font-medium text-blue-500 rounded-full bg-blue-50 dark:bg-gray-800">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" className="w-6 h-6">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
-                        </svg>
-                    </p>
-                    <h1 className="mt-3 text-2xl font-semibold text-gray-800 dark:text-white md:text-3xl">Page not found</h1>
-                    <p className="mt-4 text-gray-500 dark:text-gray-400">The page you are looking for doesn't exist. Here are some helpful links:</p>
-
-                    <div className="flex items-center w-full mt-6 gap-x-3 shrink-0 sm:w-auto">
-                        <button className="flex items-center justify-center w-1/2 px-5 py-2 text-sm text-gray-700 transition-colors duration-200 bg-white border rounded-lg gap-x-2 sm:w-auto dark:hover:bg-gray-800 dark:bg-gray-900 hover:bg-gray-100 dark:text-gray-200 dark:border-gray-700">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" className="w-5 h-5 rtl:rotate-180">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 15.75L3 12m0 0l3.75-3.75M3 12h18" />
-                            </svg>
-
-
-                            <span className='bg-black hover:bg-gray-800 rounded-lg text-white py-2 px-4' >
-                                <Link to={"/"}>Go Back Home</Link>
-                            </span>
-                        </button>
-
-
+        <div className={`flex items-center justify-center min-h-[80vh] px-6 py-12 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+            <div className="w-full max-w-md mx-auto text-center">
+                {/* 404 with animation */}
+                <div className="relative">
+                    <h1 className={`text-9xl font-extrabold tracking-widest opacity-10 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                        404
+                    </h1>
+                    <div className="absolute inset-0 flex items-center justify-center animate-bounce">
+                        <SentimentDissatisfied className="w-24 h-24 text-blue-500" />
                     </div>
                 </div>
+                
+                <h2 className="mt-8 text-3xl font-bold tracking-tight">Page Not Found</h2>
+                
+                <p className={`mt-4 text-lg ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                    Sorry, we couldn't find the page you're looking for.
+                </p>
+                
+                <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+                    <Link 
+                        to="/"
+                        className={`
+                            flex items-center gap-2 px-6 py-3 rounded-lg font-medium text-white 
+                            bg-blue-600 hover:bg-blue-700 transition-all transform hover:scale-105
+                            shadow-lg
+                        `}
+                    >
+                        <Home className="w-5 h-5" />
+                        Back to Home
+                    </Link>
+                    
+                    <button 
+                        onClick={() => window.history.back()} 
+                        className={`
+                            flex items-center gap-2 px-6 py-3 rounded-lg font-medium
+                            ${darkMode 
+                                ? 'bg-gray-700 text-white hover:bg-gray-600' 
+                                : 'bg-gray-100 text-gray-800 hover:bg-gray-200'}
+                            transition-all transform hover:scale-105
+                            shadow-md
+                        `}
+                    >
+                        <ArrowBack className="w-5 h-5" />
+                        Go Back
+                    </button>
+                </div>
+                
+                <div className={`mt-12 p-6 rounded-lg ${darkMode ? 'bg-gray-800' : 'bg-gray-50'} shadow-md`}>
+                    <h3 className="text-lg font-semibold mb-2">You might want to check:</h3>
+                    <ul className="space-y-2">
+                        <li>
+                            <Link to="/projects" className="text-blue-500 hover:underline">Projects</Link>
+                        </li>
+                        <li>
+                            <Link to="/blogs" className="text-blue-500 hover:underline">Blogs</Link>
+                        </li>
+                        <li>
+                            <Link to="/contact" className="text-blue-500 hover:underline">Contact</Link>
+                        </li>
+                        <li>
+                            <Link to="/services" className="text-blue-500 hover:underline">Services</Link>
+                        </li>
+                    </ul>
+                </div>
             </div>
-        </section>
+        </div>
     )
 }
 

@@ -179,7 +179,7 @@ const StatCard = ({ reference, functionName, heading, icon, darkMode }) => {
           />
           <span className={`text-5xl font-bold ${darkMode ? "text-white" : "text-gray-800"}`}>+</span>
         </div>
-        
+
         <h3 className={`text-xl font-medium mt-2 ${darkMode ? "text-gray-300" : "text-gray-700"}`}>
           {heading}
         </h3>

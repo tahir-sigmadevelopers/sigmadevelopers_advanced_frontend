@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import Header from './components/layout/Header'
 import Footer from './components/layout/Footer.jsx'
 import Home from './components/Home/Home'
@@ -19,7 +19,6 @@ import Profile from './components/User/Profile'
 import EditProfile from './components/User/EditProfile'
 import { useDispatch, useSelector } from 'react-redux'
 import { loadUser } from './redux/actions/user'
-import { ProtectedRoute } from 'protected-route-react'
 import PageNotFound from './components/PageNotFound'
 import UpdateRole from './admin/UpdateRole'
 import AddProject from './admin/AddProject'
@@ -35,20 +34,15 @@ import EditBlog from './admin/EditBlog'
 import AddCategory from './admin/AddCategory.jsx'
 import Categories from './admin/Categories.jsx'
 import EditCategory from './admin/EditCategory.jsx'
-
-
+import AuthCheck from './AuthCheck.jsx'
+import { getAuthToken } from './utils/authManager.js'
 
 const App = () => {
-
   return (
     <>
-
       <ThemeProvider>
-
         <MyRouter>
-
           <HeaderWithRoutes />
-
         </MyRouter>
       </ThemeProvider>
     </>
@@ -58,87 +52,87 @@ const App = () => {
 export default App
 
 const HeaderWithRoutes = () => {
-
+  const dispatch = useDispatch();
   const { darkMode } = useSelector((state) => state.theme);
-
-  const { isAuthenticated, user } = useSelector(state => state.user)
-
+  const { user, loading } = useSelector(state => state.user);
+  const [authChecked, setAuthChecked] = useState(false);
   const location = useLocation();
+  
+  // Load user data when component mounts, but only once
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        // Only load user if we have a token and haven't already checked
+        if (getAuthToken() && !authChecked) {
+          console.log("Auth token found, loading user data");
+          await dispatch(loadUser());
+        }
+      } catch (err) {
+        console.error("Authentication check failed:", err);
+      } finally {
+        // Mark auth as checked
+        setAuthChecked(true);
+      }
+    };
+    
+    if (!authChecked) {
+      checkAuth();
+    }
+  }, [dispatch, authChecked]);
+
   const showHeader = !location.pathname.startsWith('/dashboard');
 
+  // Show loading indicator only during initial auth check
+  if (loading && !authChecked) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
   return (
-
-
     <div className={` ${darkMode ? `dark:bg-gradient-to-r from-[#000428] to-[#004e92] dark:text-white` : `bg-gradient-to-r from-blue-300 to-[#0210a9]`}`}>
-
-
       {showHeader && <Header />}
-      {user && isAuthenticated && <UserOptions user={user} />}
+      {user && <UserOptions user={user} />}
       <ParticleComponent />
 
       <Routes>
-
-
-        {/* Any Body Can Access These Routes  */}
-
+        {/* Public Routes */}
         <Route path='/' element={<Home />} />
         <Route path='/projects' element={<Projects />} />
         <Route path='/about' element={<About />} />
         <Route path='/services' element={<Services />} />
         <Route path='/contact' element={<Contact />} />
-        <Route path='/login' element={<LoginForm />} />
-        <Route path='/register' element={<SignUpForm />} />
         <Route path='/blogs' element={<Blogs />} />
         <Route path='/blog/:id' element={<Blog />} />
         <Route path='/forgotpassword' element={<ForgotPassword />} />
         <Route path='/password/reset/:token' element={<ResetPassword />} />
-
-        {/* Logged In User Routes  */}
-
+        <Route path='/auth-check' element={<AuthCheck />} />
+        <Route path='/login' element={<LoginForm />} />
+        <Route path='/register' element={<SignUpForm />} />
         <Route path='/profile' element={<Profile />} />
-        {
-          user && isAuthenticated &&
-          <Route element={<ProtectedRoute isAuthenticated={isAuthenticated} />}>
+        <Route path='/editprofile' element={<EditProfile />} />
 
-
-            <Route path='/editprofile' element={<EditProfile />} />
-
-          </Route>
-
-        }
-
-
-        {/* Admin Routes  */}
-
-        {
-          user && isAuthenticated && user?.role === "dhola" &&
-          < Route element={<ProtectedRoute isAuthenticated={isAuthenticated} isAdmin={user && user.role === "dhola"} adminRoute={true} />}>
-
-            <Route path='/dashboard' element={<Dashboard />} />
-            <Route path='/dashboard/projects' element={<AdminProjects />} />
-            <Route path='/dashboard/blogs' element={<AdminBlogs />} />
-            <Route path='/dashboard/blog/create' element={<AddBlog />} />
-            <Route path='/dashboard/blog/edit/:id' element={<EditBlog />} />
-            <Route path='/dashboard/categories' element={<Categories />} />
-            <Route path='/dashboard/category/add' element={<AddCategory />} />
-            <Route path='/dashboard/category/edit/:id' element={<EditCategory />} />
-            <Route path='/dashboard/addprojects' element={<AddProject />} />
-            <Route path='/dashboard/testimonials' element={<Testimonials />} />
-            <Route path='/dashboard/project/:id' element={<EditProject />} />
-            <Route path='/dashboard/users' element={<Users />} />
-            <Route path='/dashboard/user/:id' element={<UpdateRole />} />
-
-          </Route>
-
-        }
-
+        {/* Admin Routes - All accessible without checks */}
+        <Route path='/dashboard' element={<Dashboard />} />
+        <Route path='/dashboard/projects' element={<AdminProjects />} />
+        <Route path='/dashboard/blogs' element={<AdminBlogs />} />
+        <Route path='/dashboard/blog/create' element={<AddBlog />} />
+        <Route path='/dashboard/blog/edit/:id' element={<EditBlog />} />
+        <Route path='/dashboard/categories' element={<Categories />} />
+        <Route path='/dashboard/category/add' element={<AddCategory />} />
+        <Route path='/dashboard/category/edit/:id' element={<EditCategory />} />
+        <Route path='/dashboard/addprojects' element={<AddProject />} />
+        <Route path='/dashboard/testimonials' element={<Testimonials />} />
+        <Route path='/dashboard/project/:id' element={<EditProject />} />
+        <Route path='/dashboard/users' element={<Users />} />
+        <Route path='/dashboard/user/:id' element={<UpdateRole />} />
+        
+        {/* Catch-all route for 404 */}
         <Route path='*' element={<PageNotFound />} />
-
-      </Routes >
+      </Routes>
       <Footer />
     </div>
-
-
-
   );
 };

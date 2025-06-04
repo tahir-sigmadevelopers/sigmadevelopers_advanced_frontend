@@ -67,15 +67,15 @@ const Contact = () => {
                             >
                                 tahirsultanofficial@gmail.com
                             </a>
-                        </motion.div>
+                </motion.div>
 
                         {/* WhatsApp Card */}
-                        <motion.div 
+                <motion.div
                             className={`rounded-lg shadow-lg p-8 text-center ${darkMode ? "bg-gray-800" : "bg-gray-50"}`}
-                            initial={animation.two}
-                            whileInView={animation.whileInView}
-                            transition={{ duration: 0.5 }}
-                        >
+                    initial={animation.two}
+                    whileInView={animation.whileInView}
+                    transition={{ duration: 0.5 }}
+                >
                             <div className="flex justify-center mb-4">
                                 <div className={`p-4 rounded-full ${darkMode ? "bg-gray-700" : "bg-white"} shadow-md`}>
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-green-500" fill="currentColor" viewBox="0 0 24 24">

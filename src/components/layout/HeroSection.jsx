@@ -51,20 +51,20 @@ const HeroSection = () => {
                         <h1 className={`text-4xl xl:text-5xl md:text-7xl lg:text-5xl font-extrabold mb-8 leading-tight ${darkMode ? "text-white" : "text-gray-900"}`}>
                             Welcome to{" "}
                             <span className={`mt-3 ${darkMode ? "text-blue-400" : "text-blue-600"} relative`}>
-                                <Typewriter
-                                    options={{
+                        <Typewriter
+                            options={{
                                         strings: ["Sigma Developers", "Creative Solutions", "Digital Excellence"],
-                                        autoStart: true,
-                                        loop: true,
-                                    }}
-                                />
+                                autoStart: true,
+                                loop: true,
+                            }}
+                        />
                                 <span className="absolute -bottom-2 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full"></span>
                             </span>
-                        </h1>
+                    </h1>
 
                         <p className={`text-lg md:text-xl mb-10 ${darkMode ? "text-gray-300" : "text-gray-700"}`}>
-                            {displayedText}
-                        </p>
+                        {displayedText}
+                    </p>
                         
                         <div className="flex flex-wrap gap-4">
                             <Link 
@@ -183,8 +183,8 @@ const HeroSection = () => {
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-500" viewBox="0 0 24 24">
                                     <path fill="currentColor" d="M12,1.85a1.51,1.51,0,0,0-.7.17L4.23,6.76A1.46,1.46,0,0,0,3.5,8v8a1.46,1.46,0,0,0,.73,1.2l7.07,4.74a1.51,1.51,0,0,0,1.4,0l7.07-4.74A1.46,1.46,0,0,0,20.5,16V8a1.46,1.46,0,0,0-.73-1.2L12.7,2A1.51,1.51,0,0,0,12,1.85Zm0,5.72A4.43,4.43,0,1,1,7.57,12,4.43,4.43,0,0,1,12,7.57Z"/>
                                 </svg>
-                            </div>
-                            
+                </div>
+
                             {/* MongoDB */}
                             <div className={`p-2 rounded-full ${darkMode ? "bg-gray-800" : "bg-white"} shadow-lg`}>
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-600" viewBox="0 0 24 24">

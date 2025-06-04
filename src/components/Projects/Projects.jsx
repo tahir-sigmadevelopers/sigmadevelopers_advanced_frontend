@@ -113,9 +113,9 @@ const Project = () => {
                   </motion.button>
                 );
               })}
-            </div>
-          </div>
-        </div>
+                    </div>
+                  </div>
+                </div>
 
         {/* Projects Grid */}
         <motion.div 
@@ -127,7 +127,7 @@ const Project = () => {
           {loading ? (
             <div className="col-span-full flex justify-center py-20">
               <Loader />
-            </div>
+              </div>
           ) : (
             <>
               {filteredProjects && filteredProjects.map((project) => (

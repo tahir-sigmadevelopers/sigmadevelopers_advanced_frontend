@@ -129,7 +129,7 @@ const ServiceCard = ({ title, description, icon, color, darkMode }) => {
                 <div className={`w-16 h-16 rounded-lg bg-gradient-to-r ${color} flex items-center justify-center mb-6 text-white transform transition-transform group-hover:scale-110`}>
                     {icon}
                 </div>
-                
+
                 <h3 className={`text-xl font-bold mb-3 ${darkMode ? "text-white" : "text-gray-800"}`}>
                     {title}
                 </h3>

@@ -1,0 +1,200 @@
+/* Quill Editor Styles */
+
+/* Light Theme */
+.ql-toolbar {
+  border-top-left-radius: 0.375rem;
+  border-top-right-radius: 0.375rem;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 10px !important;
+  background-color: #f9fafb;
+}
+
+.ql-container {
+  border-bottom-left-radius: 0.375rem;
+  border-bottom-right-radius: 0.375rem;
+  font-family: inherit !important;
+  height: calc(100% - 42px) !important; /* Account for toolbar height */
+}
+
+.ql-editor {
+  min-height: 550px;
+  max-height: 800px;
+  overflow-y: auto;
+  font-size: 1rem;
+  line-height: 1.6;
+  padding: 16px !important;
+}
+
+.editor-height {
+  height: 100% !important;
+}
+
+/* Editor container for full height */
+.editor-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Improve editor typography */
+.ql-editor p {
+  margin-bottom: 1rem;
+}
+
+.ql-editor h1, .ql-editor h2, .ql-editor h3, 
+.ql-editor h4, .ql-editor h5, .ql-editor h6 {
+  margin-top: 1.5rem;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.ql-editor h1 {
+  font-size: 2rem;
+}
+
+.ql-editor h2 {
+  font-size: 1.5rem;
+}
+
+.ql-editor h3 {
+  font-size: 1.25rem;
+}
+
+.ql-editor ul, .ql-editor ol {
+  padding-left: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.ql-editor li {
+  margin-bottom: 0.5rem;
+}
+
+.ql-editor blockquote {
+  border-left: 4px solid #e5e7eb;
+  padding-left: 1rem;
+  margin-left: 0;
+  font-style: italic;
+  color: #6b7280;
+}
+
+/* WordPress-like toolbar styling */
+.ql-formats {
+  margin-right: 15px !important;
+}
+
+.ql-picker {
+  height: auto !important;
+}
+
+.ql-snow .ql-picker.ql-header {
+  width: 120px !important;
+}
+
+.ql-snow .ql-picker.ql-header .ql-picker-label::before,
+.ql-snow .ql-picker.ql-header .ql-picker-item::before {
+  content: 'Normal' !important;
+}
+
+.ql-snow .ql-picker.ql-header .ql-picker-label[data-value="1"]::before,
+.ql-snow .ql-picker.ql-header .ql-picker-item[data-value="1"]::before {
+  content: 'Heading 1' !important;
+}
+
+.ql-snow .ql-picker.ql-header .ql-picker-label[data-value="2"]::before,
+.ql-snow .ql-picker.ql-header .ql-picker-item[data-value="2"]::before {
+  content: 'Heading 2' !important;
+}
+
+.ql-snow .ql-picker.ql-header .ql-picker-label[data-value="3"]::before,
+.ql-snow .ql-picker.ql-header .ql-picker-item[data-value="3"]::before {
+  content: 'Heading 3' !important;
+}
+
+/* Dark Theme */
+.ql-snow-dark .ql-toolbar {
+  background-color: #374151;
+  border-color: #4B5563;
+}
+
+.ql-snow-dark .ql-container {
+  background-color: #374151;
+  border-color: #4B5563;
+  color: white;
+}
+
+.ql-snow-dark .ql-editor {
+  color: #E5E7EB;
+}
+
+.ql-snow-dark .ql-picker-label {
+  color: #E5E7EB;
+}
+
+.ql-snow-dark .ql-stroke {
+  stroke: #E5E7EB;
+}
+
+.ql-snow-dark .ql-fill {
+  fill: #E5E7EB;
+}
+
+.ql-snow-dark .ql-picker-options {
+  background-color: #374151;
+  color: #E5E7EB;
+}
+
+.ql-snow-dark .ql-picker-item {
+  color: #E5E7EB;
+}
+
+.ql-snow-dark .ql-editor blockquote {
+  border-left-color: #4B5563;
+  color: #9CA3AF;
+}
+
+/* Custom Image Upload Styling */
+.image-upload-container {
+  position: relative;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  transition: all 0.2s;
+}
+
+.image-upload-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  height: 10rem;
+}
+
+.image-upload-overlay {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.image-upload-container:hover .image-upload-overlay {
+  opacity: 1;
+}
+
+.image-upload-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+/* Drag and Drop States */
+.drag-active {
+  border-color: #3B82F6 !important;
+  background-color: rgba(59, 130, 246, 0.05);
+} 

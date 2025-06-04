@@ -136,7 +136,7 @@ const SignUpForm = () => {
             <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
                 <div className={`${darkMode ? "bg-gray-800" : "bg-white"} py-8 px-6 shadow-xl rounded-lg sm:px-10`}>
                     <form onSubmit={registerFormSubmit} className="space-y-4" encType="multipart/form-data">
-                        <div>
+                    <div>
                             <label htmlFor="name" className={`block text-sm font-medium ${darkMode ? "text-gray-200" : "text-gray-700"}`}>
                                 Full Name
                             </label>
@@ -157,9 +157,9 @@ const SignUpForm = () => {
                                     placeholder="John Doe"
                                 />
                             </div>
-                        </div>
+                    </div>
 
-                        <div>
+                    <div>
                             <label htmlFor="email" className={`block text-sm font-medium ${darkMode ? "text-gray-200" : "text-gray-700"}`}>
                                 Email address
                             </label>
@@ -181,9 +181,9 @@ const SignUpForm = () => {
                                     placeholder="you@example.com"
                                 />
                             </div>
-                        </div>
+                    </div>
 
-                        <div>
+                    <div>
                             <label htmlFor="password" className={`block text-sm font-medium ${darkMode ? "text-gray-200" : "text-gray-700"}`}>
                                 Password
                             </label>
@@ -227,7 +227,7 @@ const SignUpForm = () => {
                             <label htmlFor="image" className={`block text-sm font-medium ${darkMode ? "text-gray-200" : "text-gray-700"}`}>
                                 Profile Image
                             </label>
-                            <div className="mt-1">
+                        <div className="mt-1">
                                 <div className={`flex items-center justify-center w-full`}>
                                     <label className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer ${darkMode ? "border-gray-600 bg-gray-700 hover:bg-gray-600" : "border-gray-300 bg-gray-50 hover:bg-gray-100"}`}>
                                         <div className="flex flex-col items-center justify-center pt-5 pb-6">
@@ -235,7 +235,7 @@ const SignUpForm = () => {
                                                 <div className="flex flex-col items-center">
                                                     <img src={image} alt="Preview" className="w-16 h-16 mb-2 rounded-full object-cover" />
                                                     <p className={`text-xs ${darkMode ? "text-gray-300" : "text-gray-500"}`}>Click to change</p>
-                                                </div>
+                        </div>
                                             ) : (
                                                 <>
                                                     <svg className={`w-8 h-8 mb-2 ${darkMode ? "text-gray-400" : "text-gray-500"}`} aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
@@ -245,15 +245,15 @@ const SignUpForm = () => {
                                                     <p className={`text-xs ${darkMode ? "text-gray-400" : "text-gray-500"}`}>PNG, JPG or JPEG (MAX. 5MB)</p>
                                                 </>
                                             )}
-                                        </div>
-                                        <input 
-                                            name="image"
-                                            accept="image/*"
-                                            required
-                                            onChange={imageUploadChange}
+                    </div>
+                            <input
+                                name="image"
+                                accept="image/*"
+                                required
+                                onChange={imageUploadChange}
                                             className="hidden"
-                                            type="file"
-                                        />
+                                type="file"
+                            />
                                     </label>
                                 </div>
                             </div>
@@ -263,7 +263,7 @@ const SignUpForm = () => {
                             {loading ? (
                                 <div className="flex justify-center">
                                     <Loader />
-                                </div>
+                    </div>
                             ) : (
                                 <button 
                                     type="submit" 
@@ -275,8 +275,8 @@ const SignUpForm = () => {
                                     Sign Up
                                 </button>
                             )}
-                        </div>
-                    </form>
+                    </div>
+                </form>
 
                     <p className="mt-6 text-center text-sm">
                         Already have an account?{' '}

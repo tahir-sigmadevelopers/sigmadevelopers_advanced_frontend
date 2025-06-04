@@ -184,7 +184,7 @@ const Footer = () => {
                                 </svg>
                                 <span className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
                                     Lahore, Pakistan
-                                </span>
+                </span>
                             </li>
                         </ul>
                     </div>

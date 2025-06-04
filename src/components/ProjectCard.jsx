@@ -30,12 +30,12 @@ const ProjectCard = () => {
                     <p className={`max-w-2xl mx-auto text-lg ${darkMode ? "text-gray-300" : "text-gray-600"}`}>
                         Explore our latest work and see how we bring ideas to life
                     </p>
-                </div>
+                                        </div>
 
                 {loading ? (
                     <div className="flex justify-center py-20">
                         <Loader />
-                    </div>
+                                            </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         {featuredProjects && featuredProjects.map((project) => (
@@ -59,7 +59,7 @@ const ProjectCard = () => {
                                         </span>
                                     </div>
                                 </div>
-                                
+
                                 <div className="p-6">
                                     <h3 className="text-xl font-bold mb-2">{project.title}</h3>
                                     <p className={`mb-6 ${darkMode ? "text-gray-300" : "text-gray-600"}`}>

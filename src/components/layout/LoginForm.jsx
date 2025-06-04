@@ -1,22 +1,28 @@
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Link, useNavigate } from 'react-router-dom'
-import { loginUser } from '../../redux/actions/user'
+import { loginUser, loadUser } from '../../redux/actions/user'
 import { toast } from 'react-hot-toast'
 import Loader from '../Loader'
+import { debugCookies } from '../../utils/cookieDebugger'
+import { saveAuthToken, isAuthenticated } from '../../utils/authManager'
 
 const LoginForm = () => {
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
     const [showPassword, setShowPassword] = useState(false)
+    const [loginSuccess, setLoginSuccess] = useState(false)
 
     const isEmailValid = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
     const navigate = useNavigate()
-    const { loading, message, error, isAuthenticated } = useSelector(state => state.user)
+    const { loading, message, error, isAuthenticated: reduxIsAuthenticated } = useSelector(state => state.user)
     const dispatch = useDispatch()
 
     const { darkMode } = useSelector((state) => state.theme);
+
+    // Do NOT automatically redirect on component mount
+    // This prevents the redirect loop between login and profile
 
     const formSubmit = async (e) => {
         e.preventDefault();
@@ -27,11 +33,23 @@ const LoginForm = () => {
         }
 
         try {
-            await dispatch(loginUser(email, password));
-
-            // Only clear fields if login is successful
+            const result = await dispatch(loginUser(email, password));
+            
+            // Check for login success and manually save token if needed
+            if (result?.type === 'loginUserSuccess' && result?.payload?.user) {
+                console.log('Login success detected, saving token');
+                
+                // Save token after successful login
+                saveAuthToken('authenticated-user');
+                
+                // Clear fields on success
             setEmail("");
             setPassword("");
+                
+                // Set login success flag to trigger navigation after message is shown
+                setLoginSuccess(true);
+            }
+            
         } catch (error) {
             console.error("Login failed:", error);
             toast.error(error.message || "Something went wrong. Please try again.");
@@ -39,10 +57,24 @@ const LoginForm = () => {
     };
 
     useEffect(() => {
-        if (isAuthenticated) {
-            return navigate("/profile")
+        if (error) {
+            toast.error(error);
+            dispatch({ type: "clearError" });
         }
-    }, [message, error, dispatch, isAuthenticated])
+        
+        if (message) {
+            toast.success(message);
+            dispatch({ type: "clearMessage" });
+            
+            // Only navigate to profile if login was successful
+            if (loginSuccess) {
+                console.log("Login successful, navigating to profile");
+                setTimeout(() => {
+                    navigate("/profile");
+                }, 1000);
+            }
+        }
+    }, [message, error, dispatch, navigate, loginSuccess]);
     
     return (
         <div className={`flex max-h-screen min-h-full flex-col justify-center px-6 py-12 lg:px-8 ${darkMode ? "bg-gray-900" : "bg-gray-50"}`}>
@@ -62,7 +94,7 @@ const LoginForm = () => {
             <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
                 <div className={`${darkMode ? "bg-gray-800" : "bg-white"} py-8 px-6 shadow-xl rounded-lg sm:px-10`}>
                     <form className="space-y-6" onSubmit={formSubmit}>
-                        <div>
+                    <div>
                             <label htmlFor="email" className={`block text-sm font-medium ${darkMode ? "text-gray-200" : "text-gray-700"}`}>
                                 Email address
                             </label>
@@ -83,14 +115,14 @@ const LoginForm = () => {
                                     placeholder="you@example.com"
                                 />
                             </div>
-                        </div>
+                    </div>
 
-                        <div>
-                            <div className="flex items-center justify-between">
+                    <div>
+                        <div className="flex items-center justify-between">
                                 <label htmlFor="password" className={`block text-sm font-medium ${darkMode ? "text-gray-200" : "text-gray-700"}`}>
                                     Password
                                 </label>
-                                <div className="text-sm">
+                            <div className="text-sm">
                                     <Link to={"/forgotpassword"} className={`font-medium ${darkMode ? "text-blue-400 hover:text-blue-300" : "text-blue-600 hover:text-blue-500"}`}>
                                         Forgot password?
                                     </Link>
@@ -128,11 +160,11 @@ const LoginForm = () => {
                                         )}
                                     </button>
                                 </div>
-                            </div>
                         </div>
+                    </div>
 
-                        <div>
-                            {
+                    <div>
+                        {
                                 loading ? <div className="flex justify-center"><Loader /></div> : 
                                 <button type="submit" className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium ${darkMode 
                                     ? "bg-blue-600 hover:bg-blue-700 text-white" 
@@ -140,9 +172,9 @@ const LoginForm = () => {
                                 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500`}>
                                     Sign in
                                 </button>
-                            }
-                        </div>
-                    </form>
+                        }
+                    </div>
+                </form>
 
                     <div className="mt-6">
                         <div className="relative">

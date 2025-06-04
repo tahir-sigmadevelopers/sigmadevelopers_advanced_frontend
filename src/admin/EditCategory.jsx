@@ -1,101 +1,100 @@
-import React, { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { useNavigate, useParams } from "react-router-dom";
-import Loader from "../components/Loader";
-import Sidebar from "./Sidebar";
-import { useEffect } from "react";
-import toast from "react-hot-toast";
-import { editCategory, getCategory } from "../redux/actions/category";
+import React, { useEffect, useState } from 'react'
+import { toast } from 'react-hot-toast'
+import { useDispatch, useSelector } from 'react-redux'
+import { useNavigate, useParams } from 'react-router-dom'
+import { editCategory, getCategory } from '../redux/actions/category'
+import Loader from '../components/Loader'
+import DashboardLayout from './DashboardLayout'
 
 const EditCategory = () => {
-
-    const { loading, message, error, category: categoryToBeEdit } = useSelector((state) => state.category);
-
-    const [category, setCategory] = useState(categoryToBeEdit?.category);
-
-    const navigate = useNavigate();
-
-    const dispatch = useDispatch();
-
+    const [categoryName, setCategoryName] = useState("")
+    
+    const navigate = useNavigate()
+    const dispatch = useDispatch()
     const params = useParams()
-    const id = params.id
+    
+    const { loading, message, error, category } = useSelector(state => state.category)
+    const { darkMode } = useSelector(state => state.theme)
 
-    const updateCategorySubmit = async (e) => {
-        e.preventDefault();
-
-        console.log(category);
-        await dispatch(editCategory(category, id));
-
-        navigate("/dashboard/categories");
-    };
+    const handleSubmit = async (e) => {
+        e.preventDefault()
+        
+        if (!categoryName.trim()) {
+            toast.error("Category name cannot be empty")
+            return
+        }
+        
+        await dispatch(editCategory(params.id, categoryName))
+        
+        if (!error) {
+            navigate("/dashboard/categories")
+        }
+    }
 
     useEffect(() => {
-        getCategory(id)
-        setCategory(categoryToBeEdit)
-        if (message) {
-            toast.success(message);
-            dispatch({ type: "clearMessage" });
-        }
+        dispatch(getCategory(params.id))
+        
         if (error) {
-            toast.error(error);
-            dispatch({ type: "clearError" });
+            toast.error(error)
+            dispatch({ type: "clearError" })
         }
-    }, [message, error])
+        if (message) {
+            toast.success(message)
+            dispatch({ type: "clearMessage" })
+        }
+    }, [error, message, dispatch, params.id])
+    
+    useEffect(() => {
+        if (category) {
+            setCategoryName(category.category || "")
+        }
+    }, [category])
 
     return (
-        <div className="flex">
-            <Sidebar />
-
-            <div className="flex min-h-full container flex-col justify-center px-6 py-8 lg:px-8">
-                <div className="sm:mx-auto sm:w-full sm:max-w-sm">
-                
-                    <h2 className="mt-4 text-center text-2xl font-bold leading-4 tracking-tight">
-                        Update Category
-                    </h2>
+        <DashboardLayout title="Edit Category">
+            {loading && !category ? (
+                <div className="flex justify-center items-center h-64">
+                    <Loader />
                 </div>
-
-                <div className="mt-4 sm:mx-auto sm:w-full sm:max-w-sm">
-                    <form
-                        onSubmit={updateCategorySubmit}
-                        className="space-y-1"
-                        encType="multipart/form-data"
-                    >
+            ) : (
+                <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-md p-6 max-w-md mx-auto`}>
+                    <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
-                            <label
-                                htmlFor="category"
-                                className="block text-sm font-medium leading-6"
-                            >
-                                Category
+                            <label htmlFor="category" className={`block text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
+                                Category Name
                             </label>
-                            <div className="mt-1">
-                                <input
-                                    value={category}
-                                    type="text"
-                                    name="category"
-                                    onChange={(e) => setCategory(e.target.value)}
-                                    autoComplete="category"
-                                    className="block w-full rounded-md border-0 py-1.5 shadow-sm ring-1 ring-inappend ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inappend focus:ring-grey-600 sm:text-sm sm:leading-6 px-2"
-                                />
-                            </div>
+                            <input 
+                                value={categoryName} 
+                                type="text" 
+                                name='category' 
+                                onChange={(e) => setCategoryName(e.target.value)} 
+                                required 
+                                className={`block w-full rounded-md border-0 py-2 px-3 shadow-sm ring-1 ring-inset 
+                                    ${darkMode ? 'bg-gray-700 text-white ring-gray-600' : 'bg-white text-gray-900 ring-gray-300'} 
+                                    focus:ring-2 focus:ring-blue-600`} 
+                                placeholder="Enter category name"
+                            />
                         </div>
 
-                        <div>
+                        <div className="pt-4">
                             {loading ? (
-                                <div className="mt-10"> <Loader /></div>
+                                <div className="flex justify-center">
+                                    <Loader />
+                                </div>
                             ) : (
-                                <button
-                                    type="submit"
-                                    className="flex w-full justify-center rounded-md bg-gray-800 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-gray-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offappend-2 focus-visible:outline-gray-900 mt-4"
+                                <button 
+                                    type="submit" 
+                                    className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all transform hover:-translate-y-1"
                                 >
-                                    Update
+                                    Update Category
                                 </button>
                             )}
                         </div>
                     </form>
                 </div>
-            </div>
-        </div>
-    );
-};
+            )}
+        </DashboardLayout>
+    )
+}
 
-export default EditCategory;
+export default EditCategory

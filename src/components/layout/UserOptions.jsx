@@ -7,13 +7,13 @@ import { Backdrop, SpeedDial, SpeedDialAction } from '@mui/material';
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-hot-toast";
 import { logoutUser } from "../../redux/actions/user";
+
 const UserOptions = ({ user }) => {
   const dispatch = useDispatch();
 
   const { message, error } = useSelector((state) => state.user);
   const actions = [
     { icon: <PersonIcon />, name: "Account", func: Person },
-
     { icon: <ExitToApp />, name: "Logout", func: Logout },
   ];
 
@@ -32,13 +32,14 @@ const UserOptions = ({ user }) => {
   function Dashboard() {
     navigate("/dashboard");
   }
+  
   function Person() {
     navigate("/profile");
   }
 
   async function Logout() {
-    // await dispatch(logoutUser());
-    logout({ logoutParams: { returnTo: window.location.origin } })
+    await dispatch(logoutUser());
+    navigate('/');
   }
 
   useEffect(() => {
@@ -51,6 +52,7 @@ const UserOptions = ({ user }) => {
       dispatch({ type: "clearError" });
     }
   }, [dispatch, message, error]);
+  
   return (
     <>
       <Backdrop open={open} style={{ zIndex: "10" }} />
