@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate, useParams } from 'react-router-dom'
 import Loader from '../components/Loader'
 import { editProject, getProjectDetails } from '../redux/actions/project'
+import { getAllCategories } from '../redux/actions/category'
 import DashboardLayout from './DashboardLayout'
 import { CloudUpload } from '@mui/icons-material'
 
@@ -15,6 +16,7 @@ const EditProject = () => {
     const [image, setImage] = useState("")
     const [oldImage, setOldImage] = useState("")
     const [isDragging, setIsDragging] = useState(false)
+    const [isSubmitting, setIsSubmitting] = useState(false)
 
     const navigate = useNavigate()
     const dispatch = useDispatch()
@@ -22,6 +24,7 @@ const EditProject = () => {
 
     const { loading, message, error, project } = useSelector(state => state.project)
     const { darkMode } = useSelector(state => state.theme)
+    const { categories } = useSelector(state => state.category)
 
     const handleImageChange = (e) => {
         const file = e.target.files[0]
@@ -67,45 +70,64 @@ const EditProject = () => {
     const updateProjectSubmit = async (e) => {
         e.preventDefault()
 
-        const data = new FormData();
-        data.set("title", title)
-        data.set("description", description)
-        data.set("category", category)
-        data.set("link", link)
-        
-        if (image !== "") {
-        data.set("image", image)
+        if (!category) {
+            toast.error("Please select a category")
+            return
         }
 
-        await dispatch(editProject(data, params.id));
+        // Find the category name from the selected category ID
+        const selectedCategory = categories.find(cat => cat._id === category);
+        if (!selectedCategory) {
+            toast.error("Invalid category selected");
+            return;
+        }
 
-        if (!error) {
-        navigate("/dashboard/projects")
+        const formData = new FormData();
+        formData.append("title", title)
+        formData.append("description", description)
+        formData.append("category", selectedCategory.category) // Send category name instead of ID
+        formData.append("link", link)
+        
+        if (image !== "") {
+            formData.append("image", image)
+        }
+
+        setIsSubmitting(true)
+        try {
+            const result = await dispatch(editProject(formData, params.id));
+            if (result?.type === "editProjectSuccess") {
+                toast.success(result.payload?.message || "Project updated successfully")
+                navigate("/dashboard/projects")
+            }
+        } catch (err) {
+            toast.error(err?.message || "Failed to update project")
+        } finally {
+            setIsSubmitting(false)
         }
     }
 
     useEffect(() => {
+        dispatch(getProjectDetails(params.id))
+        dispatch(getAllCategories())
+        
         if (error) {
             toast.error(error)
             dispatch({ type: "clearError" })
+            setIsSubmitting(false)
         }
-        if (message) {
-            toast.success(message)
-            dispatch({ type: "clearMessage" })
-        }
-
-        dispatch(getProjectDetails(params.id))
-    }, [error, message, dispatch, params.id])
+    }, [error, dispatch, params.id])
 
     useEffect(() => {
         if (project) {
             setTitle(project.title || "")
             setDescription(project.description || "")
-            setCategory(project.category || "")
+            // Find the category ID that matches the project's category name
+            const categoryId = categories.find(cat => cat.category === project.category)?._id || ""
+            setCategory(categoryId)
             setLink(project.link || "")
             setOldImage(project.image?.url || "")
         }
-    }, [project])
+    }, [project, categories])
 
     return (
         <DashboardLayout title="Edit Project">
@@ -154,17 +176,22 @@ const EditProject = () => {
                             <label htmlFor="category" className={`block text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
                                 Category
                             </label>
-                            <input 
-                                value={category} 
-                                name='category' 
-                                onChange={(e) => setCategory(e.target.value)} 
-                                type="text" 
-                                required 
+                            <select
+                                value={category}
+                                name='category'
+                                onChange={(e) => setCategory(e.target.value)}
+                                required
                                 className={`block w-full rounded-md border-0 py-2 px-3 shadow-sm ring-1 ring-inset 
                                     ${darkMode ? 'bg-gray-700 text-white ring-gray-600' : 'bg-white text-gray-900 ring-gray-300'} 
                                     focus:ring-2 focus:ring-blue-600`}
-                                placeholder="Enter project category" 
-                            />
+                            >
+                                <option value="">Select a category</option>
+                                {categories && categories.map((cat) => (
+                                    <option key={cat._id} value={cat._id}>
+                                        {cat.category}
+                                    </option>
+                                ))}
+                            </select>
                         </div>
 
                         <div>
@@ -188,62 +215,59 @@ const EditProject = () => {
                             <label htmlFor="image" className={`block text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
                                 Project Image
                             </label>
-                            <div className="mt-1 flex flex-col gap-2">
-                                <div 
-                                    className={`relative group rounded-lg overflow-hidden ${darkMode ? 'bg-gray-700' : 'bg-gray-50'} border-2 border-dashed ${isDragging ? 'border-blue-500' : darkMode ? 'border-gray-600' : 'border-gray-300'} transition-all duration-200`}
-                                    onDragOver={handleDragOver}
-                                    onDragLeave={handleDragLeave}
-                                    onDrop={handleDrop}
-                                >
-                                    <div className="flex flex-col items-center justify-center p-4 h-52">
-                                        <div className="h-full w-full flex items-center justify-center">
-                                            {!image && !oldImage ? (
-                                                <CloudUpload className={`h-20 w-20 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`} />
-                                            ) : (
-                                                <img 
-                                                    src={image || oldImage} 
-                                                    alt="Project preview" 
-                                                    className="h-full w-full object-contain" 
-                                                />
-                                            )}
-                                        </div>
-                                        
-                                        {!image && !oldImage && (
-                                            <div className="text-center mt-4">
-                                                <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                                                    Drag & drop your image here, or click to browse
-                                                </p>
-                                                <p className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                                                    Supports JPG, PNG, GIF up to 5MB
-                                                </p>
-                                            </div>
+                            <div 
+                                className={`relative group rounded-lg overflow-hidden ${darkMode ? 'bg-gray-700' : 'bg-gray-50'} border-2 border-dashed ${isDragging ? 'border-blue-500' : darkMode ? 'border-gray-600' : 'border-gray-300'} transition-all duration-200`}
+                                onDragOver={handleDragOver}
+                                onDragLeave={handleDragLeave}
+                                onDrop={handleDrop}
+                            >
+                                <div className="flex flex-col items-center justify-center p-4 h-52">
+                                    <div className="h-full w-full flex items-center justify-center">
+                                        {!image && !oldImage ? (
+                                            <CloudUpload className={`h-20 w-20 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`} />
+                                        ) : (
+                                            <img 
+                                                src={image || oldImage} 
+                                                alt="Project preview" 
+                                                className="h-full w-full object-contain" 
+                                            />
                                         )}
-
-                                <input
-                                            id="image-upload"
-                                    name="image"
-                                    accept="image/*"
-                                            onChange={handleImageChange}
-                                    type="file"
-                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                                        />
                                     </div>
                                     
-                                    {(image || oldImage) && (
-                                        <div className={`absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200`}>
-                                            <p className="text-white text-sm font-medium">Click to change image</p>
+                                    {!image && !oldImage && (
+                                        <div className="text-center mt-2">
+                                            <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                                Drag & drop image here
+                                            </p>
+                                            <p className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                                                Supports JPG, PNG, GIF
+                                            </p>
                                         </div>
                                     )}
+                                    
+                                    <input
+                                        id="image-upload"
+                                        name="image"
+                                        accept="image/*"
+                                        onChange={handleImageChange}
+                                        type="file"
+                                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                    />
                                 </div>
                                 
-                                <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                                    Leave empty to keep the current image
-                                </p>
+                                {(image || oldImage) && (
+                                    <div className={`absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200`}>
+                                        <p className="text-white text-sm font-medium">Click to change image</p>
+                                    </div>
+                                )}
                             </div>
+                            <p className={`mt-1 text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                                Leave empty to keep the current image
+                            </p>
                         </div>
 
                         <div className="pt-4">
-                            {loading ? (
+                            {loading || isSubmitting ? (
                                 <div className="flex justify-center">
                                     <Loader />
                                 </div>

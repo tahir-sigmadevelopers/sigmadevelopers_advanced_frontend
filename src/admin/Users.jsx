@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { deleteUserProfile, getAllUsers } from '../redux/actions/admin'
 import { toast } from 'react-hot-toast'
@@ -8,9 +8,20 @@ import DataTable from './components/DataTable'
 const Users = () => {
     const dispatch = useDispatch()
     const { loading, error, users, message } = useSelector(state => state.admin)
+    const [isDeleting, setIsDeleting] = useState(false)
 
-    const deleteUserHandle = (userId) => {
-        dispatch(deleteUserProfile(userId))
+    const deleteUserHandle = async (userId) => {
+        setIsDeleting(true)
+        try {
+            const result = await dispatch(deleteUserProfile(userId))
+            if (result?.type === "deleteUserSuccess") {
+                toast.success(result.payload?.message || "User deleted successfully")
+            }
+        } catch (err) {
+            toast.error(err?.message || "Failed to delete user")
+        } finally {
+            setIsDeleting(false)
+        }
     }
 
     // Define table columns
@@ -65,6 +76,9 @@ const Users = () => {
                 onDelete={deleteUserHandle}
                 editLink="/dashboard/user"
                 emptyMessage="No users available."
+                searchPlaceholder="Search users by name, email, role..."
+                deleteConfirmTitle="Delete User"
+                deleteConfirmMessage="Are you sure you want to delete this user? This action cannot be undone and will remove all user data and associated content."
             />
         </DashboardLayout>
     )

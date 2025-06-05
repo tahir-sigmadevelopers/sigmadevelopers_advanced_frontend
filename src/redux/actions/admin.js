@@ -1,108 +1,98 @@
-
 import axios from "axios"
 import { server } from "../../store"
+import { getToken } from "../../utils/authManager";
 
-
+// Helper function to get auth headers
+const getAuthConfig = (contentType = "application/json") => {
+    const token = getToken();
+    return {
+        headers: {
+            "Content-Type": contentType,
+            ...(token && { "Authorization": `Bearer ${token}` })
+        }
+    };
+};
 
 export const getAllUsers = () => async (dispatch) => {
-
     try {
-
         dispatch({
             type: "getAllUsersRequest"
-        })
+        });
 
-        const config = {
-            headers: {
-                "Content-Type": "application/json"
-            },
-            withCredentials: true
-        }
-
-        const { data } = await axios.get(`${server}/users`, config)
-
+        const config = getAuthConfig();
+        const { data } = await axios.get(`${server}/users`, config);
 
         dispatch({
             type: "getAllUsersSuccess",
             payload: data
-        })
-
-
+        });
+        
+        return {
+            type: "getAllUsersSuccess",
+            payload: data
+        };
     } catch (error) {
         dispatch({
             type: "getAllUsersFail",
-            payload: error.response.data.message
-        })
+            payload: error.response?.data?.message || "Failed to fetch users"
+        });
+        throw error;
     }
-}
-
-
-
+};
 
 export const updateRole = (id, role) => async (dispatch) => {
-
     try {
-
         dispatch({
             type: "updateProfileRequest"
-        })
+        });
 
-        const config = {
-            headers: {
-                "Content-Type": "application/json"
-            },
-            withCredentials: true
-        }
-
-        const { data } = await axios.put(`${server}/user/${id}`, { role }, config)
-
+        const config = getAuthConfig();
+        const { data } = await axios.put(`${server}/user/${id}`, { role }, config);
 
         dispatch({
             type: "updateProfileSuccess",
             payload: data
-        })
-
-
+        });
+        
+        return {
+            type: "updateProfileSuccess",
+            payload: data
+        };
     } catch (error) {
         dispatch({
             type: "updateProfileFail",
-            payload: error.response.data.message
-        })
+            payload: error.response?.data?.message || "Failed to update role"
+        });
+        throw error;
     }
-}
-
+};
 
 export const deleteUserProfile = (id) => async (dispatch) => {
-
     try {
-
         dispatch({
             type: "deleteUserRequest"
-        })
+        });
 
-        const config = {
-            headers: {
-                "Content-Type": "application/json"
-            },
-            withCredentials: true
-        }
-
-        const { data } = await axios.delete(`${server}/user/${id}`, config)
-
+        const config = getAuthConfig();
+        const { data } = await axios.delete(`${server}/user/${id}`, config);
 
         dispatch({
             type: "deleteUserSuccess",
             payload: data
-        })
-
-
+        });
+        
+        return {
+            type: "deleteUserSuccess",
+            payload: data
+        };
     } catch (error) {
         dispatch({
             type: "deleteUserFail",
-            payload: error.response.data.message
-        })
+            payload: error.response?.data?.message || "Failed to delete user"
+        });
+        throw error;
     }
-}
+};
 
 
 

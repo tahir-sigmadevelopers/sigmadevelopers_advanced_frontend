@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { loadUser } from './redux/actions/user';
-import { debugCookies } from './utils/cookieDebugger';
-import { isAuthenticated, getAuthToken } from './utils/authManager';
+import { isAuthenticated, getToken, getUser, debugAuth } from './utils/authManager';
 import axios from 'axios';
 import { server } from './store';
 
@@ -19,12 +18,12 @@ const AuthCheck = () => {
   const runAuthTest = async () => {
     setTestStatus('testing');
     try {
-      // Step 1: Check cookies
-      const cookieInfo = debugCookies();
-      console.log('Cookie debug info:', cookieInfo);
+      // Step 1: Run auth debug
+      const authInfo = debugAuth();
+      console.log('Auth debug info:', authInfo);
       
       // Step 2: Check localStorage
-      const token = getAuthToken();
+      const token = getToken();
       console.log('Auth token from manager:', token);
       
       // Step 3: Check auth manager
@@ -40,7 +39,7 @@ const AuthCheck = () => {
       // Step 6: Test API directly
       try {
         const response = await axios.get(`${server}/user/profile`, {
-          withCredentials: true,
+          withCredentials: false,
           headers: token ? { 'Authorization': `Bearer ${token}` } : {}
         });
         console.log('Direct API test succeeded:', response.data);
@@ -49,7 +48,7 @@ const AuthCheck = () => {
           success: true,
           message: 'Authentication is working correctly',
           details: {
-            cookies: cookieInfo,
+            authInfo,
             token: token ? 'Present' : 'Not found',
             authManager: isAuth,
             reduxState: reduxIsAuthenticated,
@@ -63,7 +62,7 @@ const AuthCheck = () => {
           success: false,
           message: 'Authentication is not working correctly',
           details: {
-            cookies: cookieInfo,
+            authInfo,
             token: token ? 'Present' : 'Not found',
             authManager: isAuth,
             reduxState: reduxIsAuthenticated,
@@ -89,9 +88,9 @@ const AuthCheck = () => {
     const authStatus = {
       reduxIsAuthenticated, 
       authManager: isAuthenticated(),
-      token: getAuthToken() ? 'Present' : 'Not found',
+      token: getToken() ? 'Present' : 'Not found',
       user: user ? `${user.name} (${user.email})` : 'Not logged in',
-      cookies: document.cookie
+      localStorageUser: getUser() ? 'Present' : 'Not found'
     };
     
     console.log('Current auth status:', authStatus);
@@ -120,8 +119,8 @@ const AuthCheck = () => {
           
           <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg">
             <p className="font-medium text-gray-700 dark:text-gray-200">Auth Token:</p>
-            <p className={`font-bold ${getAuthToken() ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-              {getAuthToken() ? 'Present' : 'Not Found'}
+            <p className={`font-bold ${getToken() ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+              {getToken() ? 'Present' : 'Not Found'}
             </p>
           </div>
           
@@ -134,10 +133,11 @@ const AuthCheck = () => {
         </div>
 
         <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg mb-4">
-          <p className="font-medium text-gray-700 dark:text-gray-200">Cookies:</p>
-          <p className="font-mono text-sm break-all text-gray-600 dark:text-gray-300">
-            {document.cookie || 'No cookies found'}
-          </p>
+          <p className="font-medium text-gray-700 dark:text-gray-200">Local Storage:</p>
+          <div className="font-mono text-sm break-all text-gray-600 dark:text-gray-300">
+            <p>Token: {localStorage.getItem('ghareebstar_token') ? 'Present' : 'Not found'}</p>
+            <p>User: {localStorage.getItem('ghareebstar_user') ? 'Present' : 'Not found'}</p>
+          </div>
         </div>
       </div>
       
@@ -161,7 +161,6 @@ const AuthCheck = () => {
             <div className="mt-4">
               <h4 className="font-semibold mb-2 text-gray-700 dark:text-gray-200">Test Details:</h4>
               <ul className="list-disc pl-5 space-y-1 text-gray-600 dark:text-gray-300">
-                <li>Cookies: {testResult.details.cookies.hasAuthCookie ? 'Found' : 'Not Found'}</li>
                 <li>Auth Token: {testResult.details.token}</li>
                 <li>Auth Manager: {testResult.details.authManager ? 'Authenticated' : 'Not Authenticated'}</li>
                 <li>Redux State: {testResult.details.reduxState ? 'Authenticated' : 'Not Authenticated'}</li>

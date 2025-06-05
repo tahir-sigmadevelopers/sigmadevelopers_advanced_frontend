@@ -19,6 +19,7 @@ const AddBlog = () => {
   const [content, setContent] = useState("");
   const [image, setImage] = useState("/logo.webp");
   const [isDragging, setIsDragging] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -97,24 +98,45 @@ const AddBlog = () => {
       return;
     }
 
+    if (!category) {
+      toast.error("Please select a category");
+      return;
+    }
+
+    // Find the category name from the selected category ID
+    const selectedCategory = categories.find(cat => cat._id === category);
+    if (!selectedCategory) {
+      toast.error("Invalid category selected");
+      return;
+    }
+
     const formData = new FormData();
-    formData.set("title", title);
-    formData.set("description", description);
-    formData.set("category", category);
-    formData.set("author", author);
-    formData.set("content", content);
-    formData.set("image", image);
+    formData.append("title", title);
+    formData.append("shortDescription", description);
+    formData.append("category", selectedCategory.category); // Send category name instead of ID
+    formData.append("author", author);
+    formData.append("content", content);
+    formData.append("image", image);
 
-    await dispatch(addBlog(formData));
-
-    if (!error) {
-      setTitle("");
-      setDescription("");
-      setCategory("");
-      setAuthor("");
-      setContent("");
-      setImage("/logo.webp");
-      navigate("/dashboard/blogs");
+    setIsSubmitting(true);
+    try {
+      const result = await dispatch(addBlog(formData));
+      
+      if (result?.type === "addBlogSuccess") {
+        toast.success(result.payload?.message || "Blog added successfully");
+        setTitle("");
+        setDescription("");
+        setCategory("");
+        setAuthor("");
+        setContent("");
+        setImage("/logo.webp");
+        navigate("/dashboard/blogs");
+      }
+    } catch (err) {
+      console.error("Error adding blog:", err);
+      toast.error(err?.message || "Failed to add blog");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -124,12 +146,9 @@ const AddBlog = () => {
     if (error) {
       toast.error(error);
       dispatch({ type: "clearError" });
+      setIsSubmitting(false);
     }
-    if (message) {
-      toast.success(message);
-      dispatch({ type: "clearMessage" });
-    }
-  }, [error, message, dispatch]);
+  }, [error, dispatch]);
 
   return (
     <DashboardLayout title="Add Blog">
@@ -264,7 +283,7 @@ const AddBlog = () => {
               </div>
 
               <div className="pt-4">
-                {loading ? (
+                {loading || isSubmitting ? (
                   <div className="flex justify-center">
                     <Loader />
                   </div>

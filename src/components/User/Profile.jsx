@@ -57,9 +57,9 @@ const Profile = () => {
         )
     }
 
-    // if (!user) {
-    //     return null; // Don't render anything if user isn't loaded yet
-    // }
+    if (!user) {
+        return null; // Don't render anything if user isn't loaded yet
+    }
 
     return (
         <div className={`container mx-auto px-4 py-24 max-w-5xl ${darkMode ? 'text-white' : 'text-gray-800'}`}>

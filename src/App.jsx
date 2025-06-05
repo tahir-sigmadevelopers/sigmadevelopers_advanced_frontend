@@ -35,7 +35,8 @@ import AddCategory from './admin/AddCategory.jsx'
 import Categories from './admin/Categories.jsx'
 import EditCategory from './admin/EditCategory.jsx'
 import AuthCheck from './AuthCheck.jsx'
-import { getAuthToken } from './utils/authManager.js'
+import { getToken, isAuthenticated, isTokenExpired, debugAuth } from './utils/authManager.js'
+import ProtectedRoute from './components/ProtectedRoute.jsx'
 
 const App = () => {
   return (
@@ -54,35 +55,49 @@ export default App
 const HeaderWithRoutes = () => {
   const dispatch = useDispatch();
   const { darkMode } = useSelector((state) => state.theme);
-  const { user, loading } = useSelector(state => state.user);
+  const { user, loading, isAuthenticated: reduxIsAuthenticated } = useSelector(state => state.user);
   const [authChecked, setAuthChecked] = useState(false);
   const location = useLocation();
   
-  // Load user data when component mounts, but only once
+  // Initialize authentication on component mount
   useEffect(() => {
-    const checkAuth = async () => {
+    const initAuth = async () => {
       try {
-        // Only load user if we have a token and haven't already checked
-        if (getAuthToken() && !authChecked) {
-          console.log("Auth token found, loading user data");
-          await dispatch(loadUser());
+        // Check if we have a token in localStorage
+        const token = getToken();
+        
+        if (token && !isTokenExpired(token)) {
+          // Token is valid, try to load user data with timeout protection
+          const timeoutPromise = new Promise(resolve => {
+            setTimeout(() => resolve({ timedOut: true }), 2000);
+          });
+          
+          await Promise.race([
+            dispatch(loadUser()),
+            timeoutPromise
+          ]);
         }
       } catch (err) {
-        console.error("Authentication check failed:", err);
+        // Error handled silently
       } finally {
-        // Mark auth as checked
+        // Mark auth as checked regardless of outcome
         setAuthChecked(true);
       }
     };
     
     if (!authChecked) {
-      checkAuth();
+      initAuth();
+      
+      // Safety timeout to prevent infinite loading
+      const safetyTimeout = setTimeout(() => {
+        setAuthChecked(true);
+      }, 2000);
+      
+      return () => clearTimeout(safetyTimeout);
     }
   }, [dispatch, authChecked]);
 
-  const showHeader = !location.pathname.startsWith('/dashboard');
-
-  // Show loading indicator only during initial auth check
+  // Show loading indicator briefly during initial auth check
   if (loading && !authChecked) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -93,7 +108,7 @@ const HeaderWithRoutes = () => {
 
   return (
     <div className={` ${darkMode ? `dark:bg-gradient-to-r from-[#000428] to-[#004e92] dark:text-white` : `bg-gradient-to-r from-blue-300 to-[#0210a9]`}`}>
-      {showHeader && <Header />}
+      {!location.pathname.startsWith('/dashboard') && <Header />}
       {user && <UserOptions user={user} />}
       <ParticleComponent />
 
@@ -111,23 +126,85 @@ const HeaderWithRoutes = () => {
         <Route path='/auth-check' element={<AuthCheck />} />
         <Route path='/login' element={<LoginForm />} />
         <Route path='/register' element={<SignUpForm />} />
-        <Route path='/profile' element={<Profile />} />
-        <Route path='/editprofile' element={<EditProfile />} />
+        
+        {/* Protected User Routes */}
+        <Route path='/profile' element={
+          <ProtectedRoute>
+            <Profile />
+          </ProtectedRoute>
+        } />
+        <Route path='/editprofile' element={
+          <ProtectedRoute>
+            <EditProfile />
+          </ProtectedRoute>
+        } />
 
-        {/* Admin Routes - All accessible without checks */}
-        <Route path='/dashboard' element={<Dashboard />} />
-        <Route path='/dashboard/projects' element={<AdminProjects />} />
-        <Route path='/dashboard/blogs' element={<AdminBlogs />} />
-        <Route path='/dashboard/blog/create' element={<AddBlog />} />
-        <Route path='/dashboard/blog/edit/:id' element={<EditBlog />} />
-        <Route path='/dashboard/categories' element={<Categories />} />
-        <Route path='/dashboard/category/add' element={<AddCategory />} />
-        <Route path='/dashboard/category/edit/:id' element={<EditCategory />} />
-        <Route path='/dashboard/addprojects' element={<AddProject />} />
-        <Route path='/dashboard/testimonials' element={<Testimonials />} />
-        <Route path='/dashboard/project/:id' element={<EditProject />} />
-        <Route path='/dashboard/users' element={<Users />} />
-        <Route path='/dashboard/user/:id' element={<UpdateRole />} />
+        {/* Protected Admin Routes */}
+        <Route path='/dashboard' element={
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        } />
+        <Route path='/dashboard/projects' element={
+          <ProtectedRoute>
+            <AdminProjects />
+          </ProtectedRoute>
+        } />
+        <Route path='/dashboard/blogs' element={
+          <ProtectedRoute>
+            <AdminBlogs />
+          </ProtectedRoute>
+        } />
+        <Route path='/dashboard/blog/create' element={
+          <ProtectedRoute>
+            <AddBlog />
+          </ProtectedRoute>
+        } />
+        <Route path='/dashboard/blog/edit/:id' element={
+          <ProtectedRoute>
+            <EditBlog />
+          </ProtectedRoute>
+        } />
+        <Route path='/dashboard/categories' element={
+          <ProtectedRoute>
+            <Categories />
+          </ProtectedRoute>
+        } />
+        <Route path='/dashboard/category/add' element={
+          <ProtectedRoute>
+            <AddCategory />
+          </ProtectedRoute>
+        } />
+        <Route path='/dashboard/category/edit/:id' element={
+          <ProtectedRoute>
+            <EditCategory />
+          </ProtectedRoute>
+        } />
+        <Route path='/dashboard/addprojects' element={
+          <ProtectedRoute>
+            <AddProject />
+          </ProtectedRoute>
+        } />
+        <Route path='/dashboard/testimonials' element={
+          <ProtectedRoute>
+            <Testimonials />
+          </ProtectedRoute>
+        } />
+        <Route path='/dashboard/project/:id' element={
+          <ProtectedRoute>
+            <EditProject />
+          </ProtectedRoute>
+        } />
+        <Route path='/dashboard/users' element={
+          <ProtectedRoute>
+            <Users />
+          </ProtectedRoute>
+        } />
+        <Route path='/dashboard/user/:id' element={
+          <ProtectedRoute>
+            <UpdateRole />
+          </ProtectedRoute>
+        } />
         
         {/* Catch-all route for 404 */}
         <Route path='*' element={<PageNotFound />} />

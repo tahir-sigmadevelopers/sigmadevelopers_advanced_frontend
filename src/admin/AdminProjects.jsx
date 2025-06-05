@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { toast } from 'react-hot-toast'
 import { deleteProject, getAllProjects } from '../redux/actions/project'
@@ -8,9 +8,18 @@ import DataTable from './components/DataTable'
 const AdminProjects = () => {
     const dispatch = useDispatch()
     const { loading, error, projects, message } = useSelector(state => state.project)
+    const [isDeleting, setIsDeleting] = useState(false)
 
     const deleteProjectHandle = async (projectId) => {
-        await dispatch(deleteProject(projectId))
+        setIsDeleting(true)
+        try {
+            await dispatch(deleteProject(projectId))
+            // Toast is shown via useEffect when message changes
+        } catch (err) {
+            toast.error(err?.message || "Failed to delete project")
+        } finally {
+            setIsDeleting(false)
+        }
     }
 
     // Define table columns
@@ -27,6 +36,7 @@ const AdminProjects = () => {
         {
             header: 'Category',
             accessor: 'category',
+            render: (item) => item.category || "No category"
         },
         {
             header: 'URL',
@@ -72,6 +82,9 @@ const AdminProjects = () => {
                 editLink="/dashboard/project"
                 viewLink={(item) => item.link}
                 emptyMessage="No projects available. Create your first project!"
+                searchPlaceholder="Search projects by title, category..."
+                deleteConfirmTitle="Delete Project"
+                deleteConfirmMessage="Are you sure you want to delete this project? This action cannot be undone and will remove all associated data."
             />
         </DashboardLayout>
     )

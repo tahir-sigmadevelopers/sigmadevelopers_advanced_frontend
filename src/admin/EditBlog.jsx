@@ -20,11 +20,12 @@ const EditBlog = () => {
   const [image, setImage] = useState("");
   const [oldImage, setOldImage] = useState("");
   const [isDragging, setIsDragging] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const params = useParams();
-
+  
   const { loading, message, error, blog } = useSelector((state) => state.blog);
   const { categories } = useSelector((state) => state.category);
   const { darkMode } = useSelector((state) => state.theme);
@@ -99,42 +100,60 @@ const EditBlog = () => {
       return;
     }
 
-    const formData = new FormData();
-    formData.set("title", title);
-    formData.set("description", description);
-    formData.set("category", category);
-    formData.set("author", author);
-    formData.set("content", content);
-    
-    if (image !== "") {
-      formData.set("image", image);
+    if (!category) {
+      toast.error("Please select a category");
+      return;
     }
 
-    await dispatch(editBlog(formData, params.id));
+    // Find the category name from the selected category ID
+    const selectedCategory = categories.find(cat => cat._id === category);
+    if (!selectedCategory) {
+      toast.error("Invalid category selected");
+      return;
+    }
 
-    if (!error) {
-    navigate("/dashboard/blogs");
+    const formData = new FormData();
+    formData.append("title", title);
+    formData.append("shortDescription", description);
+    formData.append("category", selectedCategory.category); // Send category name instead of ID
+    formData.append("author", author);
+    formData.append("content", content);
+    
+    if (image !== "") {
+      formData.append("image", image);
+    }
+
+    setIsSubmitting(true);
+    try {
+      const result = await dispatch(editBlog(formData, params.id));
+      
+      if (result?.type === "editBlogSuccess") {
+        toast.success(result.payload?.message || "Blog updated successfully");
+        navigate("/dashboard/blogs");
+      }
+    } catch (err) {
+      console.error("Error updating blog:", err);
+      toast.error(err?.message || "Failed to update blog");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   useEffect(() => {
-    dispatch(getAllCategories());
     dispatch(getBlogDetails(params.id));
+    dispatch(getAllCategories());
     
     if (error) {
       toast.error(error);
       dispatch({ type: "clearError" });
+      setIsSubmitting(false);
     }
-    if (message) {
-      toast.success(message);
-      dispatch({ type: "clearMessage" });
-    }
-  }, [error, message, dispatch, params.id]);
+  }, [error, dispatch, params.id]);
 
   useEffect(() => {
     if (blog) {
       setTitle(blog.title || "");
-      setDescription(blog.description || "");
+      setDescription(blog.shortDescription || "");
       setCategory(blog.category?._id || "");
       setAuthor(blog.author || "");
       setContent(blog.content || "");
@@ -282,7 +301,7 @@ const EditBlog = () => {
                 </div>
 
                 <div className="pt-4">
-                  {loading ? (
+                  {loading || isSubmitting ? (
                     <div className="flex justify-center">
                       <Loader />
                     </div>

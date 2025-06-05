@@ -4,64 +4,89 @@ import { toast } from 'react-hot-toast'
 import Loader from '../components/Loader'
 import { updateRole } from '../redux/actions/admin'
 import { useNavigate, useParams } from 'react-router-dom'
+import DashboardLayout from './DashboardLayout'
 
 const UpdateRole = () => {
-
-
     const [role, setRole] = useState("")
+    const [isSubmitting, setIsSubmitting] = useState(false)
 
     const dispatch = useDispatch()
-
     const { loading, message, error } = useSelector(state => state.admin)
-
+    const { darkMode } = useSelector(state => state.theme)
     const navigate = useNavigate()
     const params = useParams()
+
     const updateRoleSubmit = async(e) => {
         e.preventDefault()
+        
+        if (!role.trim()) {
+            toast.error("Role cannot be empty")
+            return
+        }
 
-        await dispatch(updateRole(params.id, role));
-        navigate("/dashboard/users")
+        setIsSubmitting(true)
+        try {
+            const result = await dispatch(updateRole(params.id, role))
+            if (result?.type === "updateProfileSuccess") {
+                toast.success(result.payload?.message || "User role updated successfully")
+                navigate("/dashboard/users")
+            }
+        } catch (err) {
+            toast.error(err?.message || "Failed to update user role")
+        } finally {
+            setIsSubmitting(false)
+        }
     }
 
     useEffect(() => {
-        if (message) {
-            toast.success(message)
-            dispatch({ type: "clearMessage" })
-        }
         if (error) {
             toast.error(error)
             dispatch({ type: "clearError" })
+            setIsSubmitting(false)
         }
-
-    }, [message, error, dispatch])
+    }, [error, dispatch])
 
     return (
-        <div className="flex min-h-full flex-col justify-center px-6 py-12 lg:px-8">
-            <div className="sm:mx-auto sm:w-full sm:max-w-sm">
-                <img className="mx-auto h-10 w-auto" src="https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=600" alt="Your Company" />
-                <h2 className="mt-10 text-center text-2xl font-bold leading-9 tracking-tight">Update User Role</h2>
-            </div>
-
-            <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
-                <form className="space-y-6" onSubmit={updateRoleSubmit}>
+        <DashboardLayout title="Update User Role">
+            <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-md p-6 max-w-md mx-auto`}>
+                <form onSubmit={updateRoleSubmit} className="space-y-4">
                     <div>
-                        <label htmlFor="email" className="block text-sm font-medium leading-6">Role</label>
-                        <div className="mt-2">
-                            <input value={role} onChange={(e) => setRole(e.target.value)} type="text" autoComplete="role" required className="block w-full rounded-md border-0 py-1.5 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-grey-600 sm:text-sm sm:leading-6 px-2" />
-                        </div>
+                        <label htmlFor="role" className={`block text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'} mb-1`}>
+                            Role
+                        </label>
+                        <input 
+                            value={role} 
+                            onChange={(e) => setRole(e.target.value)} 
+                            type="text" 
+                            name="role"
+                            required 
+                            className={`block w-full rounded-md border-0 py-2 px-3 shadow-sm ring-1 ring-inset 
+                                ${darkMode ? 'bg-gray-700 text-white ring-gray-600' : 'bg-white text-gray-900 ring-gray-300'} 
+                                focus:ring-2 focus:ring-blue-600`}
+                            placeholder="Enter user role (e.g., admin, user)" 
+                        />
+                        <p className={`mt-1 text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                            Common roles: admin, user, editor, moderator
+                        </p>
                     </div>
 
-
-                    <div>
-                        {
-                            loading ? <Loader /> : <button type="submit" className="flex w-full justify-center rounded-md bg-gray-800 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-gray-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900">Submit</button>
-                        }
+                    <div className="pt-4">
+                        {loading || isSubmitting ? (
+                            <div className="flex justify-center">
+                                <Loader />
+                            </div>
+                        ) : (
+                            <button 
+                                type="submit" 
+                                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                            >
+                                Update Role
+                            </button>
+                        )}
                     </div>
                 </form>
-
-
             </div>
-        </div>
+        </DashboardLayout>
     )
 }
 

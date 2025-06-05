@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { toast } from 'react-hot-toast'
 import { approveTestimonial, deleteUserTestimonial, getAllTestimonials } from '../redux/actions/testimonial'
@@ -8,13 +8,31 @@ import DataTable from './components/DataTable'
 const Testimonials = () => {
     const dispatch = useDispatch()
     const { loading, error, testimonials, message } = useSelector(state => state.testimonial)
+    const [isDeleting, setIsDeleting] = useState(false)
 
-    const approveReviewHandle = (testimonialId) => {
-        dispatch(approveTestimonial(testimonialId))
+    const approveReviewHandle = async (testimonialId) => {
+        try {
+            const result = await dispatch(approveTestimonial(testimonialId))
+            if (result?.type === "approveTestimonialSuccess") {
+                toast.success(result.payload?.message || "Testimonial approved successfully")
+            }
+        } catch (err) {
+            toast.error(err?.message || "Failed to approve testimonial")
+        }
     }
 
-    const deleteTestimonialHandle = (testimonialId) => {
-        dispatch(deleteUserTestimonial(testimonialId))
+    const deleteTestimonialHandle = async (testimonialId) => {
+        setIsDeleting(true)
+        try {
+            const result = await dispatch(deleteUserTestimonial(testimonialId))
+            if (result?.type === "deleteTestimonialSuccess") {
+                toast.success(result.payload?.message || "Testimonial deleted successfully")
+            }
+        } catch (err) {
+            toast.error(err?.message || "Failed to delete testimonial")
+        } finally {
+            setIsDeleting(false)
+        }
     }
 
     // Define table columns
@@ -76,6 +94,9 @@ const Testimonials = () => {
                 onApprove={approveReviewHandle}
                 showApprove={true}
                 emptyMessage="No testimonials available."
+                searchPlaceholder="Search testimonials by name, content..."
+                deleteConfirmTitle="Delete Testimonial"
+                deleteConfirmMessage="Are you sure you want to delete this testimonial? This action cannot be undone."
             />
         </DashboardLayout>
     )
