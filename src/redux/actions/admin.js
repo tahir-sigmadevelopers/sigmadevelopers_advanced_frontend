@@ -94,6 +94,37 @@ export const deleteUserProfile = (id) => async (dispatch) => {
     }
 };
 
+export const bulkDeleteUsers = (userIds) => async (dispatch) => {
+    try {
+        dispatch({ type: "bulkDeleteUserRequest" });
+
+        const config = getAuthConfig();
+        
+        // Make individual delete requests for each user
+        const deletePromises = userIds.map(id => 
+            axios.delete(`${server}/user/${id}`, config)
+        );
+        
+        await Promise.all(deletePromises);
+
+        dispatch({ 
+            type: "bulkDeleteUserSuccess", 
+            payload: `Successfully deleted ${userIds.length} users` 
+        });
+        
+        return {
+            success: true,
+            message: `Successfully deleted ${userIds.length} users`
+        };
+    } catch (error) {
+        dispatch({
+            type: "bulkDeleteUserFail",
+            payload: error.response?.data?.message || "Failed to delete users",
+        });
+        throw error;
+    }
+};
+
 
 
 

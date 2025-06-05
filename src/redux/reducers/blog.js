@@ -78,6 +78,21 @@ export const blogReducer = createReducer({}, {
         state.error = action.payload
     },
 
+    bulkDeleteBlogRequest: (state) => {
+        state.loading = true
+    },
+
+    bulkDeleteBlogSuccess: (state, action) => {
+        state.loading = false
+        state.message = action.payload
+        state.error = null
+    },
+
+    bulkDeleteBlogFail: (state, action) => {
+        state.loading = false
+        state.error = action.payload
+    },
+
     clearMessage: (state) => {
         state.message = null
     },

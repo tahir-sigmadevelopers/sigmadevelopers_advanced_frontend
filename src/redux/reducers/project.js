@@ -83,6 +83,21 @@ export const projectReducer = createReducer({}, {
         state.error = action.payload
     },
 
+    bulkDeleteProjectRequest: (state) => {
+        state.loading = true
+    },
+
+    bulkDeleteProjectSuccess: (state, action) => {
+        state.loading = false
+        state.message = action.payload
+        state.error = null
+    },
+
+    bulkDeleteProjectFail: (state, action) => {
+        state.loading = false
+        state.error = action.payload
+    },
+
     clearMessage: (state) => {
         state.message = null
     },

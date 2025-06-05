@@ -175,3 +175,34 @@ export const getAllBlogs = () => async (dispatch) => {
     }
 };
 
+export const bulkDeleteBlogs = (blogIds) => async (dispatch) => {
+    try {
+        dispatch({ type: "bulkDeleteBlogRequest" });
+
+        const config = getAuthConfig();
+        
+        // Make individual delete requests for each blog
+        const deletePromises = blogIds.map(id => 
+            axios.delete(`${server}/blog/delete/${id}`, config)
+        );
+        
+        await Promise.all(deletePromises);
+
+        dispatch({ 
+            type: "bulkDeleteBlogSuccess", 
+            payload: `Successfully deleted ${blogIds.length} blogs` 
+        });
+        
+        return {
+            success: true,
+            message: `Successfully deleted ${blogIds.length} blogs`
+        };
+    } catch (error) {
+        dispatch({
+            type: "bulkDeleteBlogFail",
+            payload: error.response?.data?.message || "Failed to delete blogs",
+        });
+        throw error;
+    }
+};
+

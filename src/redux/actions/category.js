@@ -150,6 +150,37 @@ export const getAllCategories = () => async (dispatch) => {
     }
 };
 
+export const bulkDeleteCategories = (categoryIds) => async (dispatch) => {
+    try {
+        dispatch({ type: "bulkDeleteCategoryRequest" });
+
+        const config = getAuthConfig();
+        
+        // Make individual delete requests for each category
+        const deletePromises = categoryIds.map(id => 
+            axios.delete(`${server}/category/${id}`, config)
+        );
+        
+        await Promise.all(deletePromises);
+
+        dispatch({ 
+            type: "bulkDeleteCategorySuccess", 
+            payload: `Successfully deleted ${categoryIds.length} categories` 
+        });
+        
+        return {
+            success: true,
+            message: `Successfully deleted ${categoryIds.length} categories`
+        };
+    } catch (error) {
+        dispatch({
+            type: "bulkDeleteCategoryFail",
+            payload: error.response?.data?.message || "Failed to delete categories",
+        });
+        throw error;
+    }
+};
+
 // For backward compatibility
 export const getCategory = getCategoryDetails;
 

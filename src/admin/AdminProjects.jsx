@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useMemo } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { toast } from 'react-hot-toast'
-import { deleteProject, getAllProjects } from '../redux/actions/project'
+import { deleteProject, getAllProjects, bulkDeleteProjects } from '../redux/actions/project'
 import DashboardLayout from './DashboardLayout'
 import DataTable from './components/DataTable'
 
@@ -17,6 +17,18 @@ const AdminProjects = () => {
             // Toast is shown via useEffect when message changes
         } catch (err) {
             toast.error(err?.message || "Failed to delete project")
+        } finally {
+            setIsDeleting(false)
+        }
+    }
+
+    const bulkDeleteProjectsHandle = async (projectIds) => {
+        setIsDeleting(true)
+        try {
+            await dispatch(bulkDeleteProjects(projectIds))
+            // Toast is shown via useEffect when message changes
+        } catch (err) {
+            toast.error(err?.message || "Failed to delete projects")
         } finally {
             setIsDeleting(false)
         }
@@ -54,6 +66,39 @@ const AdminProjects = () => {
         },
     ]
 
+    // Extract unique categories for filter options
+    const categoryOptions = useMemo(() => {
+        if (!projects) return [];
+        
+        const categories = [...new Set(projects.map(project => project.category))]
+            .filter(Boolean)
+            .map(category => ({
+                label: category,
+                value: category
+            }));
+            
+        return categories;
+    }, [projects]);
+
+    // Define filter options
+    const filterOptions = [
+        {
+            key: 'category',
+            label: 'Category',
+            options: categoryOptions
+        },
+        {
+            key: 'createdAt',
+            label: 'Time Period',
+            options: [
+                { label: 'Last 7 days', value: 'last7days' },
+                { label: 'Last 30 days', value: 'last30days' },
+                { label: 'Last 90 days', value: 'last90days' },
+                { label: 'This year', value: 'thisyear' }
+            ]
+        }
+    ];
+
     useEffect(() => {
         if (error) {
             toast.error(error)
@@ -67,6 +112,19 @@ const AdminProjects = () => {
         dispatch(getAllProjects())
     }, [error, message, dispatch])
     
+    // Filter data based on time period
+    const getFilteredProjects = () => {
+        if (!projects) return [];
+        
+        return projects.map(project => {
+            // Add computed properties for filtering if needed
+            return {
+                ...project,
+                // Add any computed properties here
+            };
+        });
+    };
+    
     return (
         <DashboardLayout 
             title="Projects" 
@@ -75,16 +133,20 @@ const AdminProjects = () => {
             addButtonText="Add New Project"
         >
             <DataTable 
-                data={projects || []}
+                data={getFilteredProjects()}
                 columns={columns}
                 loading={loading}
                 onDelete={deleteProjectHandle}
+                onBulkDelete={bulkDeleteProjectsHandle}
                 editLink="/dashboard/project"
                 viewLink={(item) => item.link}
                 emptyMessage="No projects available. Create your first project!"
                 searchPlaceholder="Search projects by title, category..."
                 deleteConfirmTitle="Delete Project"
                 deleteConfirmMessage="Are you sure you want to delete this project? This action cannot be undone and will remove all associated data."
+                bulkDeleteConfirmTitle="Delete Multiple Projects"
+                bulkDeleteConfirmMessage="Are you sure you want to delete the selected projects? This action cannot be undone."
+                filterOptions={filterOptions}
             />
         </DashboardLayout>
     )

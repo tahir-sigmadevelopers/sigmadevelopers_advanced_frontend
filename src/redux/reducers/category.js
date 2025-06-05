@@ -79,6 +79,21 @@ export const categoryReducer = createReducer({}, {
         state.error = action.payload
     },
 
+    bulkDeleteCategoryRequest: (state) => {
+        state.loading = true
+    },
+
+    bulkDeleteCategorySuccess: (state, action) => {
+        state.loading = false
+        state.message = action.payload
+        state.error = null
+    },
+
+    bulkDeleteCategoryFail: (state, action) => {
+        state.loading = false
+        state.error = action.payload
+    },
+
     clearMessage: (state) => {
         state.message = null
     },

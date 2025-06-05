@@ -51,6 +51,21 @@ export const adminReducer = createReducer({}, {
         state.error = action.payload
     },
 
+    bulkDeleteUserRequest: (state) => {
+        state.loading = true
+    },
+
+    bulkDeleteUserSuccess: (state, action) => {
+        state.loading = false
+        state.message = action.payload
+        state.error = null
+    },
+
+    bulkDeleteUserFail: (state, action) => {
+        state.loading = false
+        state.error = action.payload
+    },
+
 
     clearMessage: (state) => {
         state.message = null

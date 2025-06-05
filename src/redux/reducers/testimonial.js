@@ -65,6 +65,37 @@ export const testimonialReducer = createReducer({}, {
         state.loading = false
         state.error = action.payload
     },
+
+    bulkDeleteTestimonialRequest: (state) => {
+        state.loading = true
+    },
+
+    bulkDeleteTestimonialSuccess: (state, action) => {
+        state.loading = false
+        state.message = action.payload
+        state.error = null
+    },
+
+    bulkDeleteTestimonialFail: (state, action) => {
+        state.loading = false
+        state.error = action.payload
+    },
+
+    bulkApproveTestimonialRequest: (state) => {
+        state.loading = true
+    },
+
+    bulkApproveTestimonialSuccess: (state, action) => {
+        state.loading = false
+        state.message = action.payload
+        state.error = null
+    },
+
+    bulkApproveTestimonialFail: (state, action) => {
+        state.loading = false
+        state.error = action.payload
+    },
+
     clearMessage: (state) => {
         state.message = null
     },

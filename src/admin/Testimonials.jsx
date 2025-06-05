@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useMemo } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { toast } from 'react-hot-toast'
-import { approveTestimonial, deleteUserTestimonial, getAllTestimonials } from '../redux/actions/testimonial'
+import { approveTestimonial, deleteUserTestimonial, getAllTestimonials, bulkDeleteTestimonials, bulkApproveTestimonials } from '../redux/actions/testimonial'
 import DashboardLayout from './DashboardLayout'
 import DataTable from './components/DataTable'
 
@@ -12,10 +12,8 @@ const Testimonials = () => {
 
     const approveReviewHandle = async (testimonialId) => {
         try {
-            const result = await dispatch(approveTestimonial(testimonialId))
-            if (result?.type === "approveTestimonialSuccess") {
-                toast.success(result.payload?.message || "Testimonial approved successfully")
-            }
+            await dispatch(approveTestimonial(testimonialId))
+            // Toast is shown via useEffect when message changes
         } catch (err) {
             toast.error(err?.message || "Failed to approve testimonial")
         }
@@ -24,14 +22,33 @@ const Testimonials = () => {
     const deleteTestimonialHandle = async (testimonialId) => {
         setIsDeleting(true)
         try {
-            const result = await dispatch(deleteUserTestimonial(testimonialId))
-            if (result?.type === "deleteTestimonialSuccess") {
-                toast.success(result.payload?.message || "Testimonial deleted successfully")
-            }
+            await dispatch(deleteUserTestimonial(testimonialId))
+            // Toast is shown via useEffect when message changes
         } catch (err) {
             toast.error(err?.message || "Failed to delete testimonial")
         } finally {
             setIsDeleting(false)
+        }
+    }
+
+    const bulkDeleteTestimonialsHandle = async (testimonialIds) => {
+        setIsDeleting(true)
+        try {
+            await dispatch(bulkDeleteTestimonials(testimonialIds))
+            // Toast is shown via useEffect when message changes
+        } catch (err) {
+            toast.error(err?.message || "Failed to delete testimonials")
+        } finally {
+            setIsDeleting(false)
+        }
+    }
+
+    const bulkApproveTestimonialsHandle = async (testimonialIds) => {
+        try {
+            await dispatch(bulkApproveTestimonials(testimonialIds))
+            // Toast is shown via useEffect when message changes
+        } catch (err) {
+            toast.error(err?.message || "Failed to approve testimonials")
         }
     }
 
@@ -71,6 +88,18 @@ const Testimonials = () => {
         }
     ]
 
+    // Define filter options
+    const filterOptions = [
+        {
+            key: 'approved',
+            label: 'Status',
+            options: [
+                { label: 'Approved', value: 'true' },
+                { label: 'Pending', value: 'false' }
+            ]
+        }
+    ];
+
     useEffect(() => {
         if (error) {
             toast.error(error)
@@ -84,19 +113,37 @@ const Testimonials = () => {
         dispatch(getAllTestimonials())
     }, [error, message, dispatch])
 
+    // Filter data based on status
+    const getFilteredTestimonials = () => {
+        if (!testimonials) return [];
+        
+        return testimonials.map(testimonial => {
+            // Convert boolean to string for filtering
+            return {
+                ...testimonial,
+                approvedString: testimonial.approved ? 'true' : 'false'
+            };
+        });
+    };
+
     return (
         <DashboardLayout title="Testimonials">
             <DataTable 
-                data={testimonials || []}
+                data={getFilteredTestimonials()}
                 columns={columns}
                 loading={loading}
                 onDelete={deleteTestimonialHandle}
+                onBulkDelete={bulkDeleteTestimonialsHandle}
                 onApprove={approveReviewHandle}
+                onBulkApprove={bulkApproveTestimonialsHandle}
                 showApprove={true}
                 emptyMessage="No testimonials available."
                 searchPlaceholder="Search testimonials by name, content..."
                 deleteConfirmTitle="Delete Testimonial"
                 deleteConfirmMessage="Are you sure you want to delete this testimonial? This action cannot be undone."
+                bulkDeleteConfirmTitle="Delete Multiple Testimonials"
+                bulkDeleteConfirmMessage="Are you sure you want to delete the selected testimonials? This action cannot be undone."
+                filterOptions={filterOptions}
             />
         </DashboardLayout>
     )

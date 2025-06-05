@@ -120,3 +120,65 @@ export const approveTestimonial = (id) => async (dispatch) => {
         throw error;
     }
 };
+
+export const bulkDeleteTestimonials = (testimonialIds) => async (dispatch) => {
+    try {
+        dispatch({ type: "bulkDeleteTestimonialRequest" });
+
+        const config = getAuthConfig();
+        
+        // Make individual delete requests for each testimonial
+        const deletePromises = testimonialIds.map(id => 
+            axios.delete(`${server}/testimonial/${id}`, config)
+        );
+        
+        await Promise.all(deletePromises);
+
+        dispatch({ 
+            type: "bulkDeleteTestimonialSuccess", 
+            payload: `Successfully deleted ${testimonialIds.length} testimonials` 
+        });
+        
+        return {
+            success: true,
+            message: `Successfully deleted ${testimonialIds.length} testimonials`
+        };
+    } catch (error) {
+        dispatch({
+            type: "bulkDeleteTestimonialFail",
+            payload: error.response?.data?.message || "Failed to delete testimonials",
+        });
+        throw error;
+    }
+};
+
+export const bulkApproveTestimonials = (testimonialIds) => async (dispatch) => {
+    try {
+        dispatch({ type: "bulkApproveTestimonialRequest" });
+
+        const config = getAuthConfig();
+        
+        // Make individual approve requests for each testimonial
+        const approvePromises = testimonialIds.map(id => 
+            axios.put(`${server}/testimonial/${id}`, {}, config)
+        );
+        
+        await Promise.all(approvePromises);
+
+        dispatch({ 
+            type: "bulkApproveTestimonialSuccess", 
+            payload: `Successfully approved ${testimonialIds.length} testimonials` 
+        });
+        
+        return {
+            success: true,
+            message: `Successfully approved ${testimonialIds.length} testimonials`
+        };
+    } catch (error) {
+        dispatch({
+            type: "bulkApproveTestimonialFail",
+            payload: error.response?.data?.message || "Failed to approve testimonials",
+        });
+        throw error;
+    }
+};

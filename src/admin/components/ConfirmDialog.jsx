@@ -1,71 +1,89 @@
 import React from 'react';
-import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography } from '@mui/material';
 import { useSelector } from 'react-redux';
-import { WarningAmberRounded } from '@mui/icons-material';
+import { Dialog, DialogTitle, DialogContent, DialogActions, Button, CircularProgress } from '@mui/material';
 
-const ConfirmDialog = ({ open, title, message, onConfirm, onCancel, isDeleting }) => {
+const ConfirmDialog = ({ 
+  open, 
+  title, 
+  message, 
+  onConfirm, 
+  onCancel, 
+  isDeleting = false,
+  confirmText = 'Delete',
+  cancelText = 'Cancel',
+  confirmColor = 'red'
+}) => {
   const { darkMode } = useSelector(state => state.theme);
   
+  const getButtonColorClass = () => {
+    switch (confirmColor) {
+      case 'green':
+        return 'bg-green-600 hover:bg-green-700';
+      case 'blue':
+        return 'bg-blue-600 hover:bg-blue-700';
+      case 'red':
+      default:
+        return 'bg-red-600 hover:bg-red-700';
+    }
+  };
+
   return (
-    <Dialog 
-      open={open} 
+    <Dialog
+      open={open}
       onClose={onCancel}
       PaperProps={{
         style: {
-          backgroundColor: darkMode ? '#1F2937' : '#FFFFFF',
-          color: darkMode ? '#F3F4F6' : '#111827',
-          maxWidth: '400px',
-          width: '100%',
-          borderRadius: '0.5rem'
-        }
+          backgroundColor: darkMode ? '#1f2937' : 'white',
+          color: darkMode ? 'white' : 'inherit',
+          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+          borderRadius: '0.5rem',
+          padding: '0.5rem',
+        },
       }}
     >
-      <DialogTitle sx={{ 
-        display: 'flex', 
-        alignItems: 'center', 
-        gap: 1,
-        color: darkMode ? '#F87171' : '#DC2626'
-      }}>
-        <WarningAmberRounded color="inherit" />
-        <Typography variant="h6" component="span">
-          {title || 'Confirm Deletion'}
-        </Typography>
+      <DialogTitle sx={{ color: darkMode ? 'white' : 'inherit' }}>
+        {title}
       </DialogTitle>
-      
       <DialogContent>
-        <Typography variant="body1" sx={{ color: darkMode ? '#D1D5DB' : '#4B5563' }}>
-          {message || 'Are you sure you want to delete this item? This action cannot be undone.'}
-        </Typography>
+        <p className={darkMode ? 'text-gray-300' : 'text-gray-700'}>
+          {message}
+        </p>
       </DialogContent>
-      
-      <DialogActions sx={{ padding: '16px 24px' }}>
-        <Button 
-          onClick={onCancel} 
+      <DialogActions>
+        <Button
+          onClick={onCancel}
           variant="outlined"
-          sx={{ 
-            color: darkMode ? '#D1D5DB' : '#4B5563',
-            borderColor: darkMode ? '#4B5563' : '#D1D5DB',
-            '&:hover': {
-              borderColor: darkMode ? '#9CA3AF' : '#6B7280',
-              backgroundColor: darkMode ? 'rgba(156, 163, 175, 0.04)' : 'rgba(107, 114, 128, 0.04)'
-            }
-          }}
-        >
-          Cancel
-        </Button>
-        <Button 
-          onClick={onConfirm} 
-          variant="contained" 
-          color="error"
           disabled={isDeleting}
-          sx={{ 
-            backgroundColor: darkMode ? '#DC2626' : '#EF4444',
+          sx={{
+            borderColor: darkMode ? 'rgba(209, 213, 219, 0.5)' : 'rgba(107, 114, 128, 0.5)',
+            color: darkMode ? 'white' : 'inherit',
             '&:hover': {
-              backgroundColor: darkMode ? '#B91C1C' : '#DC2626'
-            }
+              borderColor: darkMode ? 'rgba(209, 213, 219, 0.8)' : 'rgba(107, 114, 128, 0.8)',
+              backgroundColor: darkMode ? 'rgba(31, 41, 55, 0.04)' : 'rgba(249, 250, 251, 0.04)',
+            },
           }}
         >
-          {isDeleting ? 'Deleting...' : 'Delete'}
+          {cancelText}
+        </Button>
+        <Button
+          onClick={onConfirm}
+          disabled={isDeleting}
+          className={`${getButtonColorClass()} text-white`}
+          sx={{
+            backgroundColor: 'inherit', // Override with className
+            '&:hover': {
+              backgroundColor: 'inherit', // Override with className
+            },
+          }}
+        >
+          {isDeleting ? (
+            <>
+              <CircularProgress size={16} color="inherit" className="mr-2" />
+              Processing...
+            </>
+          ) : (
+            confirmText
+          )}
         </Button>
       </DialogActions>
     </Dialog>

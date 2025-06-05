@@ -176,3 +176,34 @@ export const getProjectDetails = (id) => async (dispatch) => {
         throw error;
     }
 };
+
+export const bulkDeleteProjects = (projectIds) => async (dispatch) => {
+    try {
+        dispatch({ type: "bulkDeleteProjectRequest" });
+
+        const config = getAuthConfig();
+        
+        // Make individual delete requests for each project
+        const deletePromises = projectIds.map(id => 
+            axios.delete(`${server}/project/delete/${id}`, config)
+        );
+        
+        await Promise.all(deletePromises);
+
+        dispatch({ 
+            type: "bulkDeleteProjectSuccess", 
+            payload: `Successfully deleted ${projectIds.length} projects` 
+        });
+        
+        return {
+            success: true,
+            message: `Successfully deleted ${projectIds.length} projects`
+        };
+    } catch (error) {
+        dispatch({
+            type: "bulkDeleteProjectFail",
+            payload: error.response?.data?.message || "Failed to delete projects",
+        });
+        throw error;
+    }
+};
